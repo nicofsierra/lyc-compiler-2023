@@ -53,6 +53,7 @@ char *buffer;
 %token COMA
 %token PUNTO
 %token INIT
+%token FIB
 %token INT
 %token FLOAT
 %token STRING
@@ -76,6 +77,7 @@ sentencia:
 		| zonadec { printf(" Zona Declaracion es Sentencia\n"); }
 		| read { printf("Read es Sentencia\n"); }
 		| write { printf("Write es Sentencia\n"); }
+		| fibonacci { printf("Fibonacci es Sentencia\n"); }
 		;
 
 asignacion:
@@ -95,6 +97,10 @@ bloque_seleccion:
 bloque_else:
 	ELSE LA programa LC {printf("ELSE {Programa} Es Bloque Else\n"); }
 	;
+
+fibonacci:
+		FIB PARA expresion PARC { printf(" FIB( Expresion ) es Fibonacci\n"); }
+		;
 
 iteracion:
 		CICLO PARA condicion PARC LA programa LC {printf(" CICLO (Condicion) { programa } es Iteracion\n"); }

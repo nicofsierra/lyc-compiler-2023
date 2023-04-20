@@ -85,6 +85,7 @@ DEFAULT			"DEFAULT"
 ENDDO			"ENDDO"
 REPEAT			"REPEAT"
 INIT			"init"
+FIB				"FIB"
 ID				{LETRA}({LETRA}|{DIGITO}|_)*
 
 %%
@@ -101,6 +102,7 @@ ID				{LETRA}({LETRA}|{DIGITO}|_)*
 {READ}			{printf("\nP_Reservada_READ: %s", yytext); return READ; }
 {WRITE}			{printf("\nP_Reservada_WRITE: %s", yytext); return WRITE; }
 {INIT}			{printf("\nP_Reservada_INIT: %s", yytext); return INIT; }
+{FIB}			{printf("\nP_Reservada_FIB: %s", yytext); return FIB; }
 
 
 {CTE_E}			{printf("\nConstEntera: %s", yytext); guardar_TS("CTE_E", yytext); eval_int(yytext); return CTE_E; } 
