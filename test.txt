@@ -54,7 +54,7 @@ F = "HOLA TODO BIEN!"
 E = 12
 
 *-CICLO-*
-cilco(E > B)
+ciclo(E > B)
 {
 	E = E - 1
 }
