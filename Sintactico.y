@@ -172,16 +172,16 @@ constante_string:
 		;
 
 read:
-		READ PARA CTE_S PARC{ printf("READ CTE_S es Read\n"); }
-		| READ PARA CTE_E PARC{printf(" READ CTE_E es Read\n"); }
-		| READ PARA ID PARC {printf(" READ ID es Read\n"); }
-		| READ PARA CTE_R PARC{printf(" READ CTE_R es Read\n"); }
+		READ PARA CTE_S PARC{ printf(" READ (CTE_S) es Read\n"); }
+		| READ PARA CTE_E PARC{printf(" READ (CTE_E) es Read\n"); }
+		| READ PARA ID PARC {printf(" READ (ID) es Read\n"); }
+		| READ PARA CTE_R PARC{printf(" READ (CTE_R) es Read\n"); }
 		;
 write:
-		WRITE PARA CTE_S PARC{ printf("WRITE CTE_S es Write\n"); }
-		| WRITE PARA CTE_E PARC{printf(" WRITE CTE_E es Write\n"); }
-		| WRITE PARA ID PARC{printf(" WRITE ID es Write\n"); }
-		| WRITE PARA CTE_R PARC{printf(" WRITE CTE_R es Write\n"); }
+		WRITE PARA CTE_S PARC{ printf(" WRITE (CTE_S) es Write\n"); }
+		| WRITE PARA CTE_E PARC{printf(" WRITE (CTE_E) es Write\n"); }
+		| WRITE PARA ID PARC{printf(" WRITE (ID) es Write\n"); }
+		| WRITE PARA CTE_R PARC{printf(" WRITE (CTE_R) es Write\n"); }
 		;
 %%
 
