@@ -79,11 +79,6 @@ ELSE			"else"
 CICLO			"ciclo"
 READ			"read"
 WRITE			"write"
-DO				"DO"
-CASE			"CASE"	
-DEFAULT			"DEFAULT"
-ENDDO			"ENDDO"
-REPEAT			"REPEAT"
 INIT			"init"
 FIB				"FIB"
 ID				{LETRA}({LETRA}|{DIGITO}|_)*
@@ -103,7 +98,6 @@ ID				{LETRA}({LETRA}|{DIGITO}|_)*
 {WRITE}			{printf("\nP_Reservada_WRITE: %s", yytext); return WRITE; }
 {INIT}			{printf("\nP_Reservada_INIT: %s", yytext); return INIT; }
 {FIB}			{printf("\nP_Reservada_FIB: %s", yytext); return FIB; }
-
 
 {CTE_E}			{printf("\nConstEntera: %s", yytext); guardar_TS("CTE_E", yytext); eval_int(yytext); return CTE_E; } 
 {CTE_R}			{printf("\nConstReal: %s", yytext); guardar_TS("CTE_R", yytext); eval_float(yytext); return CTE_R; }
@@ -132,6 +126,7 @@ ID				{LETRA}({LETRA}|{DIGITO}|_)*
 {CO_MEN}		{printf("\nMenor: %s", yytext); return CO_MEN; }
 {CO_MAYI}		{printf("\nMayIgual: %s", yytext); return CO_MAYI;}
 {CO_MAY}		{printf("\nMayor: %s", yytext); return CO_MAY; }
+
 
 {ID}			{printf("\nIdentificador: %s", yytext); guardar_TS("ID", yytext); return ID; }
 

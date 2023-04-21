@@ -4,6 +4,7 @@ init
 	A, B, C, D, E: Int
 	H, R: Float
 	G, F, W: String
+	fib1, fib2, fib3: Int
 	variable1: Int
 }
 
@@ -61,6 +62,11 @@ ciclo(E > B)
 
 write(A)
 
+*-FUNCION FIB-*
+fib1 = FIB(6)
+fib2 = A + B * FIB(2)
+
+
 
 *-ERRORES DEL LEXICO-*
 *-D := 50000-*
@@ -69,11 +75,6 @@ write(A)
 *-W := "0123456789012345678901234356789"-*
 *-@-*
 *-FIN ERRORES LEXICO-*
-
-*-FUNCION FIB-*
-FIB(A)
-FIB(B * -1)
-FIB(9)
 
 read(F)
 write(F)

@@ -53,13 +53,13 @@ char *buffer;
 %token COMA
 %token PUNTO
 %token INIT
-%token FIB
 %token INT
 %token FLOAT
 %token STRING
 %token READ
 %token WRITE
 %token NOT
+%token FIB
 
 %%
 start:
@@ -77,7 +77,6 @@ sentencia:
 		| zonadec { printf(" Zona Declaracion es Sentencia\n"); }
 		| read { printf("Read es Sentencia\n"); }
 		| write { printf("Write es Sentencia\n"); }
-		| fibonacci { printf("Fibonacci es Sentencia\n"); }
 		;
 
 asignacion:
@@ -98,12 +97,8 @@ bloque_else:
 	ELSE LA programa LC {printf("ELSE {Programa} Es Bloque Else\n"); }
 	;
 
-fibonacci:
-		FIB PARA expresion PARC { printf(" FIB( Expresion ) es Fibonacci\n"); }
-		;
-
 iteracion:
-		CICLO PARA condicion PARC LA programa LC {printf(" CICLO (Condicion) { programa } es Iteracion\n"); }
+		CICLO PARA condicion PARC LA programa LC {printf(" WHILE (Condicion) { programa } es Iteracion\n"); }
 		;
 
 condicion:
@@ -129,7 +124,7 @@ comparador:
 expresion:
 		expresion OP_SUM termino { printf(" Expresion + Termino es Expresion\n");}
 		| expresion OP_RES termino {printf(" Expresion - Termino es Expresion\n"); }
-		| termino {printf(" Termino es Expresion\n"); } 
+		| termino {printf(" Termino es Expresion\n"); }
 		;
 		
 termino:
@@ -143,6 +138,7 @@ factor:
 		| ID {printf(" ID es Factor\n"); }
 		| CTE_E {printf(" CTE_E es Factor\n"); }
 		| CTE_R {printf(" CTE_R es Factor\n");  }
+		| FIB PARA CTE_E PARC { printf(" FIB ( CTE_E ) es Factor\n"); }
 		;
 		
 zonadec:
