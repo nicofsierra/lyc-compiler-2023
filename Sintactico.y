@@ -98,7 +98,7 @@ bloque_else:
 	;
 
 iteracion:
-		CICLO PARA condicion PARC LA programa LC {printf(" WHILE (Condicion) { programa } es Iteracion\n"); }
+		CICLO PARA condicion PARC LA programa LC {printf(" CICLO (Condicion) { programa } es Iteracion\n"); }
 		;
 
 condicion:
