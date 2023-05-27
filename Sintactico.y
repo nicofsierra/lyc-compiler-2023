@@ -95,12 +95,12 @@ programa:
 		;
 		
 sentencia:
-		asignacion	{ printf("R3: S -> A ");}
-		| iteracion { printf("R4: S -> I \n"); }
-		| seleccion { printf("R5: S -> seleccion \n"); }
-		| zonadec { printf("R6: S -> zonadec \n"); }
-		| read { printf("R7: S -> A \n"); }
-		| write { printf("R8: S -> A \n"); }
+		asignacion	{ printf("R3: sentencia -> asignacion ");}
+		| iteracion { printf("R4: sentencia -> iteracion \n"); }
+		| seleccion { printf("R5: sentencia -> seleccion \n"); }
+		| zonadec { printf("R6: sentencia -> zonadec \n"); }
+		| read { printf("R7: sentencia -> read \n"); }
+		| write { printf("R8: sentencia -> write \n"); }
 		;
 
 asignacion:
@@ -159,9 +159,9 @@ termino:
 		
 factor:
 		PARA  expresion PARC {printf("R32: factor -> ( expresion )\n"); }
-		| ID {printf("R33: factor -> ID\n"); }
-		| CTE_E {printf("R34: factor -> CTE_E\n"); }
-		| CTE_R {printf("R35: factor -> CTE_R\n");  }
+		| ID {printf("R33: factor -> ID\n"); insertar_polaca($1); }
+		| CTE_E {printf("R34: factor -> CTE_E\n"); insertar_polaca($1);}
+		| CTE_R {printf("R35: factor -> CTE_R\n"); insertar_polaca($1); }
 		| FIB PARA CTE_E PARC { printf("R36: factor -> FIB ( CTE_E )\n"); }
 		;
 		
