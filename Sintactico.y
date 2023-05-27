@@ -146,14 +146,14 @@ comparador:
 		;
 
 expresion:
-		expresion OP_SUM termino { printf("R26: expresion -> expresion + termino\n");}
-		| expresion OP_RES termino {printf("R27: expresion -> expresion - termino\n"); }
+		expresion OP_SUM termino { printf("R26: expresion -> expresion + termino\n"); insertar_polaca($2);}
+		| expresion OP_RES termino {printf("R27: expresion -> expresion - termino\n"); insertar_polaca($2);}
 		| termino {printf("R28: expresion -> termino es expresion\n"); }
 		;
 		
 termino:
-		termino OP_MUL factor {printf("R29: termino -> termino * factor\n"); }
-		| termino OP_DIV factor {printf("R30: termino -> termino / factor\n"); }
+		termino OP_MUL factor {printf("R29: termino -> termino * factor\n"); insertar_polaca($2);}
+		| termino OP_DIV factor {printf("R30: termino -> termino / factor\n"); insertar_polaca($2);}
 		| factor {printf("R31: termino -> factor es termino\n"); }
 		;
 		
@@ -245,7 +245,6 @@ void insertar_polaca(char *dato){
 
 void escribir_polaca(char *dato,int pos){
 	polaca[pos] = dato;
-	printf("polaca[14]=%s--polaca[25]=%s\n",polaca[14],polaca[25]);
 }
 
 
@@ -254,7 +253,6 @@ void exportar(){
 	int i = 0;
 	archivo = fopen("intermedio.txt","a");
 	for ( i = 0 ; i < indice ; i++){
-		printf( "%d- %s\n",i,polaca[i]);
 		fprintf( archivo , "%s", polaca[i] );
 	}
 	fclose(archivo);

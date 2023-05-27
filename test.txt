@@ -8,6 +8,7 @@ init
 	variable1: Int
 }
 
+
 *-ASIGNACIONES-*
 A = 5
 B = -10
@@ -16,6 +17,10 @@ B = -10
 E = A * 2.3 + 1
 H = 2.3
 R2 = -.4
+
+*-EXPRESIONES-*
+
+Z = 5 * ( A + B )
 
 *-IF-*
 if( A < 4 & B > 9 )
