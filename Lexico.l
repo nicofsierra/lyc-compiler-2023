@@ -85,50 +85,50 @@ ID				{LETRA}({LETRA}|{DIGITO}|_)*
 
 %%
 
-{CORA}          {printf("\nCorAbre: %s", yytext); return CORA; }
-{CORC}			{printf("\nCorCierra: %s", yytext); return CORC; }
+{CORA}          {yylval.cadena = strdup(yytext); return CORA; }
+{CORC}			{yylval.cadena = strdup(yytext); return CORC; }
 
-{INT}			{printf("\nP_Reservada_INT: %s", yytext); return INT; }											
-{FLOAT}			{printf("\nP_Reservada_FLOAT: %s", yytext); return FLOAT; }
-{STRING}		{printf("\nP_Reservada_STRING: %s", yytext); return STRING; }
-{IF}			{printf("\nP_Reservada_IF: %s", yytext); return IF; }
-{ELSE}			{printf("\nP_Reservada_ELSE: %s", yytext); return ELSE; }
-{CICLO}			{printf("\nP_Reservada_WHILE: %s", yytext); return CICLO; }
-{READ}			{printf("\nP_Reservada_READ: %s", yytext); return READ; }
-{WRITE}			{printf("\nP_Reservada_WRITE: %s", yytext); return WRITE; }
-{INIT}			{printf("\nP_Reservada_INIT: %s", yytext); return INIT; }
-{FIB}			{printf("\nP_Reservada_FIB: %s", yytext); return FIB; }
+{INT}			{yylval.cadena = strdup(yytext); return INT; }											
+{FLOAT}			{yylval.cadena = strdup(yytext); return FLOAT; }
+{STRING}		{yylval.cadena = strdup(yytext); return STRING; }
+{IF}			{yylval.cadena = strdup(yytext); return IF; }
+{ELSE}			{yylval.cadena = strdup(yytext); return ELSE; }
+{CICLO}			{yylval.cadena = strdup(yytext); return CICLO; }
+{READ}			{yylval.cadena = strdup(yytext); return READ; }
+{WRITE}			{yylval.cadena = strdup(yytext); return WRITE; }
+{INIT}			{yylval.cadena = strdup(yytext); return INIT; }
+{FIB}			{yylval.cadena = strdup(yytext); return FIB; }
 
-{CTE_E}			{printf("\nConstEntera: %s", yytext); guardar_TS("CTE_E", yytext); eval_int(yytext); return CTE_E; } 
-{CTE_R}			{printf("\nConstReal: %s", yytext); guardar_TS("CTE_R", yytext); eval_float(yytext); return CTE_R; }
+{CTE_E}			{yylval.cadena = strdup(yytext); guardar_TS("CTE_E", yytext); eval_int(yytext); return CTE_E; } 
+{CTE_R}			{yylval.cadena = strdup(yytext); guardar_TS("CTE_R", yytext); eval_float(yytext); return CTE_R; }
 
-{CTE_S} 		{printf("\nConstString: %s", yytext); guardar_TS("CTE_S", yytext); eval_string(yytext); return CTE_S; }  
+{CTE_S} 		{yylval.cadena = strdup(yytext); guardar_TS("CTE_S", yytext); eval_string(yytext); return CTE_S; }  
 {COMENTARIO}
-{DP}			{printf("\nDosPuntos: %s", yytext); return DP; }
-{PC}			{printf("\nPuntoComa: %s", yytext); return PC; }
-{OP_SUM}		{printf("\nSuma: %s", yytext); return OP_SUM; }
-{OP_ASIG}		{printf("\nAsignacion: %s", yytext); return OP_ASIG; }
-{OP_MUL}		{printf("\nMultiplicacion: %s", yytext); return OP_MUL; }
-{OP_RES}		{printf("\nResta: %s", yytext); return OP_RES; }
-{OP_DIV}		{printf("\nDivision: %s", yytext); return OP_DIV; }
-{COMA}			{printf("\nComa: %s", yytext); return COMA; }
-{LA}            {printf("\nLlAbre: %s", yytext); return LA; }
-{LC}			{printf("\nLlCierra: %s", yytext); return LC; }
-{PARA}			{printf("\nParAbre: %s", yytext); return PARA; }
-{PARC}			{printf("\nParCierra: %s", yytext); return PARC; }
-{PUNTO}			{printf("\nPunto: %s", yytext); return PUNTO; }
-{AND}			{printf("\nAnd: %s", yytext); return AND; }
-{OR}			{printf("\nOr: %s", yytext); return OR; }
-{NOT}			{printf("\nNOT: %s", yytext); return NOT; }
-{CO_IGUAL}		{printf("\nIgual: %s", yytext); return CO_IGUAL; }
-{CO_DIST}		{printf("\nNoIgual: %s", yytext); return CO_DIST; }
-{CO_MENI}		{printf("\nMenIgual: %s", yytext); return CO_MENI; }
-{CO_MEN}		{printf("\nMenor: %s", yytext); return CO_MEN; }
-{CO_MAYI}		{printf("\nMayIgual: %s", yytext); return CO_MAYI;}
-{CO_MAY}		{printf("\nMayor: %s", yytext); return CO_MAY; }
+{DP}			{yylval.cadena = strdup(yytext); return DP; }
+{PC}			{yylval.cadena = strdup(yytext); return PC; }
+{OP_SUM}		{yylval.cadena = strdup(yytext); return OP_SUM; }
+{OP_ASIG}		{yylval.cadena = strdup(yytext); return OP_ASIG; }
+{OP_MUL}		{yylval.cadena = strdup(yytext); return OP_MUL; }
+{OP_RES}		{yylval.cadena = strdup(yytext); return OP_RES; }
+{OP_DIV}		{yylval.cadena = strdup(yytext); return OP_DIV; }
+{COMA}			{yylval.cadena = strdup(yytext); return COMA; }
+{LA}            {yylval.cadena = strdup(yytext); return LA; }
+{LC}			{yylval.cadena = strdup(yytext); return LC; }
+{PARA}			{yylval.cadena = strdup(yytext); return PARA; }
+{PARC}			{yylval.cadena = strdup(yytext); return PARC; }
+{PUNTO}			{yylval.cadena = strdup(yytext); return PUNTO; }
+{AND}			{yylval.cadena = strdup(yytext); return AND; }
+{OR}			{yylval.cadena = strdup(yytext); return OR; }
+{NOT}			{yylval.cadena = strdup(yytext); return NOT; }
+{CO_IGUAL}		{yylval.cadena = strdup(yytext); return CO_IGUAL; }
+{CO_DIST}		{yylval.cadena = strdup(yytext); return CO_DIST; }
+{CO_MENI}		{yylval.cadena = strdup(yytext); return CO_MENI; }
+{CO_MEN}		{yylval.cadena = strdup(yytext); return CO_MEN; }
+{CO_MAYI}		{yylval.cadena = strdup(yytext); return CO_MAYI;}
+{CO_MAY}		{yylval.cadena = strdup(yytext); return CO_MAY; }
 
 
-{ID}			{printf("\nIdentificador: %s", yytext); guardar_TS("ID", yytext); return ID; }
+{ID}			{yylval.cadena = strdup(yytext); guardar_TS("ID", yytext); return ID; }
 
 
 
@@ -188,7 +188,6 @@ int guardar_TS(char* tipo, char* nombre){
 	str_cpy(tablaSimbolos[puntero_array].valor, "");
 	if(tipo == "CTE_S"){
 		int longitud = strlen(nombre);
-		printf("\nLongitud: %d", longitud);
 		tablaSimbolos[puntero_array].longitud = longitud;
 	}
 	retornar = puntero_array;
