@@ -166,7 +166,12 @@ factor:
 		;
 		
 zonadec:
-		INIT LA bloque_declaracion LC {printf ("R37: zonadec -> INIT { bloque_declaracion }\n"); }
+		INIT LA bloque_declaracion LC {
+			printf ("R37: zonadec -> INIT { bloque_declaracion }\n");
+			insertar_polaca($1);
+			insertar_polaca($2);
+			insertar_polaca($4);
+		}
 		;
 		
 bloque_declaracion:
@@ -175,11 +180,11 @@ bloque_declaracion:
 		;
 		
 declaracion:
-		multiple_dec DP tipo { printf("R40: declaracion -> multiple_dec: tipo\n"); }
+		multiple_dec DP tipo { printf("R40: declaracion -> multiple_dec : tipo\n"); insertar_polaca($2); }
 		;
 		
 multiple_dec:
-		multiple_dec COMA variable { printf("R41: multiple_dec -> multiple_dec , variable\n"); } 
+		multiple_dec COMA variable { printf("R41: multiple_dec -> multiple_dec , variable\n"); insertar_polaca($2); } 
 		| variable { printf("R42: multiple_dec -> variable\n"); } 
 		;
 		
@@ -280,8 +285,7 @@ struct Nodo *apilar( int indice , struct Nodo *p )
 
 struct Nodo *desapilar( struct Nodo *p)
 {
-	if( p != NULL )
-	{
+	if( p != NULL ) {
 		struct Nodo *temporal = p;
 		p = p->sig;
 		free(temporal);
