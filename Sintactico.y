@@ -104,8 +104,16 @@ sentencia:
 		;
 
 asignacion:
-		ID OP_ASIG expresion { printf("R9: asignacion -> ID = expresion \n"); }
-		| ID OP_ASIG constante_string {printf("R10: asignacion -> ID = cte_s \n");; }
+		ID OP_ASIG expresion { 
+			printf("R9: asignacion -> ID = expresion \n"); 
+			insertar_polaca($1);
+			insertar_polaca($2);
+		}
+		| ID OP_ASIG constante_string {
+			printf("R10: asignacion -> ID = cte_s \n"); 
+			insertar_polaca($1);
+			insertar_polaca($2);
+		}
 		;
 
 seleccion:
