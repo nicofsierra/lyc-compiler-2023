@@ -5,38 +5,41 @@
 #include "y.tab.h"
 //#include "ts.h"
 
-// tipo de datos pila
-struct Nodo
-{
-	int dato;
-	struct Nodo *sig;
-};
+//pila
+
+typedef struct nodo {
+   int dato;
+   struct nodo *siguiente;
+} tipoNodo;
+
+typedef tipoNodo *pNodo;
+typedef tipoNodo *tPila;
+
+tPila pila_comp;
+tPila pila_ciclo;
+
+
+//funciones pila
+void crear_pila( tPila * );
+void apilar(int , tPila *);
+int desapilar(tPila *);
 
 int yystopparser=0;
 FILE  *yyin;
 int yyerror();
 int yylex();
-int crear_TS();
-
-//manejo conversiontes tipo
-char buffer[10];
 
 //polaca
 char *polaca[100];
 int indice = 0;
 void insertar_polaca();
 void exportar();
-int pos_salto=0;
 void escribir_polaca(char *,int );
+char comp[4] = {'0','0','0','\n'} ;
+char notcomp[4] = {'0','0','0','\n'} ;
 
-//pilas
-struct Nodo *pila_pos = NULL;
-struct Nodo *pila_pol = NULL;
-
-//funciones de la pila
-struct Nodo *crea_nodo( void );
-struct Nodo *apilar();
-struct Nodo *desapilar();
+//manejo de cadenas
+char *convertir( int );
 
 %}
 
@@ -122,27 +125,35 @@ bloque_else:
 	;
 
 iteracion:
-		CICLO PARA condicion PARC LA programa LC {printf("R14: iteracion -> CICLO (Condicion) { programa }\n"); }
+		CICLO {apilar(indice,&pila_ciclo); insertar_polaca("ET");   }PARA condicion PARC LA programa LC {printf("R14: iteracion -> CICLO (Condicion) { programa }\n"); 
+		insertar_polaca("BI"); insertar_polaca(convertir(desapilar(&pila_ciclo))); while(pila_comp!=NULL){ escribir_polaca( convertir(indice), desapilar(&pila_comp)); } }
 		;
 
 condicion:
-		  comparacion AND comparacion {printf("R15: condicion -> comparacion AND comparacion n"); }
-		| comparacion OR comparacion {printf("R16: condicion -> comparacion OR comparacion\n");} 
-		| comparacion {printf("R17: condicion -> comparacion\n"); }
+		  comparacion {insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); insertar_polaca(comp); apilar(indice,&pila_comp); indice++;}
+		  AND comparacion {printf("R15: condicion -> comparacion AND comparacion n"); insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); 
+																					  insertar_polaca(comp); apilar(indice,&pila_comp); indice++;}
+		| comparacion {insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); insertar_polaca(comp); insertar_polaca(convertir(indice+1));}
+		  OR comparacion {printf("R16: condicion -> comparacion OR comparacion\n"); insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); 
+																					  insertar_polaca(comp); apilar(indice,&pila_comp); indice++; } 
+		| comparacion {printf("R17: condicion -> comparacion\n"); insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP");
+																  insertar_polaca(comp); apilar(indice,&pila_comp); indice++; }
 		;
 		
 comparacion:
-		expresion comparador expresion {printf("R18: comparacion -> expresion comparador expresion\n"); }
-		| NOT expresion comparador expresion {printf("\nR19: comparacion -> NOT expresion comparador expresion\n"); }
+		expresion { insertar_polaca("@aux1"); insertar_polaca("="); } comparador expresion {printf("R18: comparacion -> expresion comparador expresion\n"); 
+																						 insertar_polaca("@aux2"); insertar_polaca("="); }
+		| NOT expresion { insertar_polaca("@aux1"); insertar_polaca("="); }  comparador expresion {printf("\nR19: comparacion -> NOT expresion comparador expresion\n");
+																						 insertar_polaca("@aux2"); insertar_polaca("="); }
 		;
 		
 comparador:
-		CO_IGUAL {printf("R20: comparador -> ==\n"); }
-		| CO_DIST {printf("R21: comparador -> !=\n"); }
-		| CO_MENI  {printf("R22: comparador -> <=\n"); }
-		| CO_MEN {printf("R23: comparador -> <\n"); }
-		| CO_MAYI  {printf("R24: comparador -> >=\n"); }
-		| CO_MAY   {printf("R25: comparador -> >\n"); }
+		CO_IGUAL {printf("R20: comparador -> ==\n"); sprintf(comp,"%s","BNE"); sprintf(notcomp,"%s","BEQ");}
+		| CO_DIST {printf("R21: comparador -> !=\n"); sprintf(comp,"%s","BEQ"); sprintf(notcomp,"%s","BNE");}
+		| CO_MENI  {printf("R22: comparador -> <=\n"); sprintf(comp,"%s","BGT"); sprintf(notcomp,"%s","BGE");}
+		| CO_MEN {printf("R23: comparador -> <\n"); sprintf(comp,"%s","BGE"); sprintf(notcomp,"%s","BGT");}
+		| CO_MAYI  {printf("R24: comparador -> >=\n"); sprintf(comp,"%s","BLT"); sprintf(notcomp,"%s","BLE");}
+		| CO_MAY   {printf("R25: comparador -> >\n"); sprintf(comp,"%s","BLE"); sprintf(notcomp,"%s","BLT");}
 		;
 
 expresion:
@@ -214,6 +225,10 @@ write:
 
 int main(int argc, char *argv[])
 {
+	crear_pila(&pila_comp);
+	crear_pila(&pila_ciclo);
+
+	
     if((yyin = fopen(argv[1], "rt"))==NULL)
     {
         printf("\n\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
@@ -253,38 +268,54 @@ void exportar(){
 	int i = 0;
 	archivo = fopen("intermedio.txt","a");
 	for ( i = 0 ; i < indice ; i++){
-		fprintf( archivo , "%s", polaca[i] );
+		
+		/*printf( "%d- %s\n",i,polaca[i]);*/
+		fprintf( archivo , "posicion:%d  | %s |\n", i, polaca[i] );
 	}
 	fclose(archivo);
 }
 
-struct Nodo *crea_nodo( void )
+char *convertir( int a )
 {
-	struct Nodo *nuevo = malloc(sizeof(struct Nodo ));
-	return nuevo ;
+	char *buffer = malloc(2);
+	sprintf(buffer,"%d",a);
+	return buffer;
 }
 
-struct Nodo *apilar( int indice , struct Nodo *p )
-{
-	struct Nodo *nuevo = crea_nodo( ) ;
-	if(!nuevo)
-		printf("\nNo hay memoria");
-	else
-	{
-		nuevo->dato = indice ;
-		nuevo->sig = p ;
-		p = nuevo;
-	}
-	return p;
+void crear_pila( tPila *nodo ){
+	*nodo = NULL;
 }
 
-struct Nodo *desapilar( struct Nodo *p)
-{
-	if( p != NULL )
-	{
-		struct Nodo *temporal = p;
-		p = p->sig;
-		free(temporal);
-	}
-	return (p);
+void apilar(int v, tPila *pila) {
+   pNodo nuevo;
+
+   nuevo = (pNodo)malloc(sizeof(tipoNodo));
+   nuevo->dato = v;
+   
+   nuevo->siguiente = *pila;
+   *pila = nuevo;
+   
 }
+
+int desapilar(tPila *pila) {
+   pNodo nodo; 
+   int v;      
+
+   nodo = *pila;
+   
+   if(!nodo) return 0; 
+  
+   *pila = nodo->siguiente;
+   
+   v = nodo->dato;
+   
+   free(nodo);
+   return v;
+}
+
+/*void vaciarPila( tPila *pila)
+{
+	free(*pila);
+}*/
+
+
