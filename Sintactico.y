@@ -17,6 +17,7 @@ typedef tipoNodo *tPila;
 
 tPila pila_comp;
 tPila pila_ciclo;
+tPila pila_fib;
 
 
 //funciones pila
@@ -173,7 +174,20 @@ factor:
 		| ID {printf("R33: factor -> ID\n"); insertar_polaca($1); }
 		| CTE_E {printf("R34: factor -> CTE_E\n"); insertar_polaca($1);}
 		| CTE_R {printf("R35: factor -> CTE_R\n"); insertar_polaca($1); }
-		| FIB PARA CTE_E PARC { printf("R36: factor -> FIB ( CTE_E )\n"); }
+		| FIB PARA CTE_E PARC { printf("R36: factor -> FIB ( CTE_E )\n"); insertar_polaca("0"); insertar_polaca("@cont"); insertar_polaca("=");
+																insertar_polaca("0"); insertar_polaca("@ret"); insertar_polaca("=");
+																insertar_polaca("0"); insertar_polaca("@term1"); insertar_polaca("=");
+																insertar_polaca("1"); insertar_polaca("@term2"); insertar_polaca("=");
+																apilar(indice,&pila_fib); insertar_polaca("ET"); insertar_polaca("@cont"); insertar_polaca($3);
+																insertar_polaca("CMP"); insertar_polaca("BGE"); insertar_polaca("@term1"); insertar_polaca("@term2");
+																insertar_polaca("+"); insertar_polaca("@ret"); insertar_polaca("="); 
+																insertar_polaca("@term2"); insertar_polaca("@term1"); insertar_polaca("="); 
+																insertar_polaca("@ret"); insertar_polaca("@term2"); insertar_polaca("="); 
+																insertar_polaca("@cont"); insertar_polaca("1"); insertar_polaca("+");
+																insertar_polaca("@cont"); insertar_polaca("="); insertar_polaca("BI"); 
+																insertar_polaca(convertir(desapilar(&pila_fib))); insertar_polaca("@ret"); 
+																insertar_polaca("@fib"); insertar_polaca("="); 
+																}
 		;
 		
 zonadec:
@@ -227,6 +241,7 @@ int main(int argc, char *argv[])
 {
 	crear_pila(&pila_comp);
 	crear_pila(&pila_ciclo);
+	crear_pila(&pila_fib);
 
 	
     if((yyin = fopen(argv[1], "rt"))==NULL)
