@@ -18,7 +18,8 @@ typedef tipoNodo *tPila;
 tPila pila_comp;
 tPila pila_ciclo;
 tPila pila_fib;
-
+tPila pila_sel;
+int indiceTemp;
 
 //funciones pila
 void crear_pila( tPila * );
@@ -121,12 +122,12 @@ asignacion:
 		;
 
 seleccion:
-		IF PARA condicion PARC bloque_seleccion {printf("R10: seleccion -> IF ( condicion )\n");}
+		IF PARA condicion PARC { apilar(indice,&pila_sel);} bloque_seleccion {printf("R10: seleccion -> IF ( condicion )\n"); escribir_polaca( convertir(indice), desapilar(&pila_sel)); }
 		;
 
 bloque_seleccion: 
-	LA programa LC {printf("R11: bloque_seleccion -> {programa} \n"); }
-	| LA programa LC bloque_else {printf("R12: bloque_seleccion -> {Programa} ELSE {Programa} bloque_else\n"); }
+	LA programa LC {printf("R11: bloque_seleccion -> {programa} \n"); escribir_polaca( convertir(indice), desapilar(&pila_comp));escribir_polaca(convertir(indice), desapilar(&pila_sel));}
+	| LA programa LC {escribir_polaca( convertir(indice), desapilar(&pila_sel));insertar_polaca("BI");apilar(indice,&pila_sel);indice++;escribir_polaca( convertir(indice), desapilar(&pila_comp));} bloque_else {escribir_polaca(convertir(indice), desapilar(&pila_sel));printf("R12: bloque_seleccion -> {Programa} ELSE {Programa} bloque_else\n"); }
 	;
 	
 bloque_else:
@@ -236,10 +237,10 @@ constante_string:
 		;
 
 read:
-		READ PARA CTE_S PARC{ printf("R48: read -> READ (CTE_S)\n"); }
-		| READ PARA CTE_E PARC{printf("R49: read -> READ (CTE_E)\n"); }
-		| READ PARA ID PARC {printf("R50: read -> READ (ID)\n"); }
-		| READ PARA CTE_R PARC{printf("R51: read -> READ (CTE_R)\n"); }
+		READ PARA CTE_S PARC{ printf("R48: read -> READ (CTE_S)\n"); insertar_polaca($1); insertar_polaca($3);}
+		| READ PARA CTE_E PARC{printf("R49: read -> READ (CTE_E)\n"); insertar_polaca($1); insertar_polaca($3);}
+		| READ PARA ID PARC {printf("R50: read -> READ (ID)\n"); insertar_polaca($1); insertar_polaca($3);}
+		| READ PARA CTE_R PARC{printf("R51: read -> READ (CTE_R)\n"); insertar_polaca($1); insertar_polaca($3);}
 		;
 write:
 		WRITE PARA CTE_S PARC{ printf("R51: write -> WRITE (CTE_S)\n"); insertar_polaca($1); insertar_polaca($3);}
@@ -255,6 +256,7 @@ int main(int argc, char *argv[])
 	crear_pila(&pila_comp);
 	crear_pila(&pila_ciclo);
 	crear_pila(&pila_fib);
+	crear_pila(&pila_sel);
 
 	
     if((yyin = fopen(argv[1], "rt"))==NULL)
