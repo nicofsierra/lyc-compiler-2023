@@ -209,8 +209,6 @@ zonadec:
 		INIT LA bloque_declaracion LC {
 			printf ("R37: zonadec -> INIT { bloque_declaracion }\n");
 			insertar_polaca($1);
-			//insertar_polaca($2);
-			//insertar_polaca($4);
 		}
 		;
 		
