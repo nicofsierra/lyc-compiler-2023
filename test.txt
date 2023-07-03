@@ -1,6 +1,5 @@
 *-ZONA DE DECLARACION DE VARIABLES-*
-init
-{
+init {
 	A, B, C, D, E: Int
 	H, R: Float
 	G, F, W: String
@@ -23,36 +22,23 @@ R2 = -.4
 Z = 5 * ( A + B )
 
 *-IF-*
-if( A < 4 & B > 9 )
-{
+if( A < 4 & B > 9 ) {
  	D = 5
 }
 
 
 *-IF ELSE-*
-if(A == 4 || B != 9)
-{
- 	if ( A == 4 )
-	 
-	{
+if(A == 4 || B != 9) {
+ 	if (A == 4) {
 		D=5
-	}
-	
-}
-else
-{
-	if ( not A > 3 )
-	
-	{
+	}	
+} else {
+	if ( not A > 3 ) {
 		D=4
-	}
-	else
-	{
+	} else {
 		C=3
 	}
-	
 }
-
 
 G = "HOLA"
 F = "HOLA TODO BIEN!"
@@ -60,8 +46,7 @@ F = "HOLA TODO BIEN!"
 E = 12
 
 *-CICLO-*
-ciclo(E > B)
-{
+ciclo(E > B) {
 	E = E - 1
 }
 

@@ -28,12 +28,14 @@ int yystopparser=0;
 FILE  *yyin;
 int yyerror();
 int yylex();
+int crear_TS();
 
 //polaca
 char *polaca[100];
 int indice = 0;
-void insertar_polaca();
+void insertar_polaca(char *);
 void exportar();
+void ver_polaca();
 void escribir_polaca(char *,int );
 int notc = 0;
 char *comp;
@@ -92,7 +94,7 @@ char *copiar( char * );
 
 %%
 start:
-		programa {printf("Fin del Programa\n"); exportar();}
+		programa {printf("Fin del Programa\n"); exportar(); ver_polaca();}
 ;
 programa:
 		sentencia {printf("R1: programa -> sentencia \n"); } 
@@ -122,7 +124,7 @@ asignacion:
 		;
 
 seleccion:
-		IF PARA condicion PARC { apilar(indice,&pila_sel);} bloque_seleccion {printf("R10: seleccion -> IF ( condicion )\n"); escribir_polaca( convertir(indice), desapilar(&pila_sel)); }
+		IF PARA condicion PARC { apilar(indice, &pila_sel);} bloque_seleccion {printf("R10: seleccion -> IF ( condicion )\n"); escribir_polaca( convertir(indice), desapilar(&pila_sel)); }
 		;
 
 bloque_seleccion: 
@@ -258,7 +260,6 @@ int main(int argc, char *argv[]) {
 	crear_pila(&pila_ciclo);
 	crear_pila(&pila_fib);
 	crear_pila(&pila_sel);
-
 	
     if((yyin = fopen(argv[1], "rt"))==NULL) {
         printf("\n\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
@@ -267,6 +268,7 @@ int main(int argc, char *argv[]) {
     }
 	
 	fclose(yyin);
+	crear_TS();
 		
     return 0;
 }
@@ -296,6 +298,17 @@ void exportar() {
 	}
 
 	fclose(archivo);
+}
+
+void ver_polaca() {
+	printf("---POLACA INVERSA---\n");
+	printf("| ");
+
+	for (int i = 0; i < indice; i++) {
+		printf("%s | ", polaca[i]);
+	}
+
+	printf("\n--------------------\n");
 }
 
 char *convertir( int a ) {

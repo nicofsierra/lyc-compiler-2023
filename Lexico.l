@@ -11,7 +11,7 @@ struct struct_tablaSimbolos{
 	int longitud;
 };
 
-int guardar_TS( char*, char*);
+int guardar_TS(char*, char*);
 int crear_TS();
 int contarChar( char* a );
 int puntero_array = 0;
@@ -127,7 +127,6 @@ ID				{LETRA}({LETRA}|{DIGITO}|_)*
 {CO_MAYI}		{yylval.cadena = strdup(yytext); return CO_MAYI;}
 {CO_MAY}		{yylval.cadena = strdup(yytext); return CO_MAY; }
 
-
 {ID}			{yylval.cadena = strdup(yytext); guardar_TS("ID", yytext); return ID; }
 
 
@@ -137,9 +136,8 @@ ID				{LETRA}({LETRA}|{DIGITO}|_)*
 "\n\t"
 " "             		
 "\r\n"
-"@"			 { printf( "\nERROR LEXICO : Caracter no reconocido: %s\n", yytext ); exit (0); return; }
-.			 { printf( "\nERROR LEXICO : Caracter no reconocido: %s\n", yytext ); exit (0); return; }
-
+"@"			 { printf( "\nERROR LEXICO : Caracter no reconocido: %s\n", yytext ); exit (0); return 0; }
+.			 { printf( "\nERROR LEXICO : Caracter no reconocido: %s\n", yytext ); exit (0); return 0; }
 
 
 %%
@@ -174,11 +172,10 @@ int eval_string( char* s ){
 }
 
 int guardar_TS(char* tipo, char* nombre){
-	
 	int i;
 	int retornar;
 	char *buffer;
-	for(i = 0; i < puntero_array; i++){
+	for(i = 0; i < puntero_array; i++) {
 		if(str_cmp(tablaSimbolos[i].nombre, nombre) == 0){
 			return i;
 		}
@@ -186,10 +183,12 @@ int guardar_TS(char* tipo, char* nombre){
 	str_cpy(tablaSimbolos[puntero_array].tipo, tipo);
 	str_cpy(tablaSimbolos[puntero_array].nombre, nombre);
 	str_cpy(tablaSimbolos[puntero_array].valor, "");
-	if(tipo == "CTE_S"){
+
+	if(tipo == "CTE_S") {
 		int longitud = strlen(nombre);
 		tablaSimbolos[puntero_array].longitud = longitud;
 	}
+
 	retornar = puntero_array;
 	puntero_array++;
 	return retornar;
@@ -198,7 +197,7 @@ int guardar_TS(char* tipo, char* nombre){
 int crear_TS() {
 	FILE *pf; 
 	int i;
-	pf = fopen("ts.txt","w"); 
+	pf = fopen("ts.txt","w+"); 
 
 	if (!pf){
 		return 0;
@@ -219,17 +218,14 @@ int crear_TS() {
 	return 1;
 }
 
-char* str_cpy(char* destino, const char* origen)
-{
-    
+char* str_cpy(char* destino, const char* origen) {
     if (destino == NULL) {
         return NULL;
     }
     
     char *ptr = destino;
     
-    while (*origen != '\0')
-    {
+    while (*origen != '\0') {
         *destino = *origen;
         destino++;
         origen++;
@@ -247,6 +243,7 @@ int str_cmp(const char * str1, const char * str2) {
 		str1++;
 		str2++;
 	}
+
 	if (*str1 == '\0' && *str2 == '\0')
       return 0;
    	else
