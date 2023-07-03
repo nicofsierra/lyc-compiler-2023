@@ -195,7 +195,7 @@ int guardar_TS(char* tipo, char* nombre){
 	return retornar;
 }
 
-int crear_TS(){
+int crear_TS() {
 	FILE *pf; 
 	int i;
 	pf = fopen("ts.txt","w"); 
@@ -240,8 +240,7 @@ char* str_cpy(char* destino, const char* origen)
     return ptr;
 }
 
-int str_cmp(const char * str1, const char * str2)
-{
+int str_cmp(const char * str1, const char * str2) {
 	while (*str1 == *str2) {
 		if (*str1 == '\0' || *str2 == '\0')
 			break;
@@ -254,11 +253,14 @@ int str_cmp(const char * str1, const char * str2)
       return -1;
 }
 
-int contarChar( char* a ){
+int contarChar( char* a ) {
 	int i, cont = 0;
-	for( i = 0 ; i < 32 ; i++ ){	
-		if( a[i] != '\n' )
+
+	for(i = 0 ; i < 32 ; i++) {	
+		if( a[i] != '\n' ) {
 			cont++;
+		}
 	}
+
 	return cont;
 }

@@ -1,0 +1,1394 @@
+Terminals which are not used
+
+   CORA
+   CORC
+   PC
+   PUNTO
+
+
+Grammar
+
+    0 $accept: start $end
+
+    1 start: programa
+
+    2 programa: sentencia
+    3         | programa sentencia
+
+    4 sentencia: asignacion
+    5          | iteracion
+    6          | seleccion
+    7          | zonadec
+    8          | read
+    9          | write
+
+   10 asignacion: ID OP_ASIG expresion
+   11           | ID OP_ASIG constante_string
+
+   12 @1: /* empty */
+
+   13 seleccion: IF PARA condicion PARC @1 bloque_seleccion
+
+   14 bloque_seleccion: LA programa LC
+
+   15 @2: /* empty */
+
+   16 bloque_seleccion: LA programa LC @2 bloque_else
+
+   17 bloque_else: ELSE LA programa LC
+
+   18 @3: /* empty */
+
+   19 iteracion: CICLO @3 PARA condicion PARC LA programa LC
+
+   20 @4: /* empty */
+
+   21 condicion: comparacion @4 AND comparacion
+
+   22 @5: /* empty */
+
+   23 condicion: comparacion @5 OR comparacion
+   24          | comparacion
+
+   25 @6: /* empty */
+
+   26 comparacion: expresion @6 comparador expresion
+
+   27 @7: /* empty */
+
+   28 comparacion: NOT expresion @7 comparador expresion
+
+   29 comparador: CO_IGUAL
+   30           | CO_DIST
+   31           | CO_MENI
+   32           | CO_MEN
+   33           | CO_MAYI
+   34           | CO_MAY
+
+   35 expresion: expresion OP_SUM termino
+   36          | expresion OP_RES termino
+   37          | termino
+
+   38 termino: termino OP_MUL factor
+   39        | termino OP_DIV factor
+   40        | factor
+
+   41 factor: PARA expresion PARC
+   42       | ID
+   43       | CTE_E
+   44       | CTE_R
+   45       | FIB PARA CTE_E PARC
+
+   46 zonadec: INIT LA bloque_declaracion LC
+
+   47 bloque_declaracion: bloque_declaracion declaracion
+   48                   | declaracion
+
+   49 declaracion: multiple_dec DP tipo
+
+   50 multiple_dec: multiple_dec COMA variable
+   51             | variable
+
+   52 variable: ID
+
+   53 tipo: FLOAT
+   54     | INT
+   55     | STRING
+
+   56 constante_string: CTE_S
+
+   57 read: READ PARA CTE_S PARC
+   58     | READ PARA CTE_E PARC
+   59     | READ PARA ID PARC
+   60     | READ PARA CTE_R PARC
+
+   61 write: WRITE PARA CTE_S PARC
+   62      | WRITE PARA CTE_E PARC
+   63      | WRITE PARA ID PARC
+   64      | WRITE PARA CTE_R PARC
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+CTE_E (258) 43 45 58 62
+CTE_R (259) 44 60 64
+ID (260) 10 11 42 52 59 63
+OP_ASIG (261) 10 11
+OP_SUM (262) 35
+OP_MUL (263) 38
+OP_RES (264) 36
+OP_DIV (265) 39
+LA (266) 14 16 17 19 46
+LC (267) 14 16 17 19 46
+PARA (268) 13 19 41 45 57 58 59 60 61 62 63 64
+PARC (269) 13 19 41 45 57 58 59 60 61 62 63 64
+CORA (270)
+CORC (271)
+AND (272) 21
+OR (273) 23
+CO_IGUAL (274) 29
+CO_DIST (275) 30
+CO_MENI (276) 31
+CO_MEN (277) 32
+CO_MAYI (278) 33
+CO_MAY (279) 34
+IF (280) 13
+ELSE (281) 17
+CICLO (282) 19
+CTE_S (283) 56 57 61
+DP (284) 49
+PC (285)
+COMA (286) 50
+PUNTO (287)
+INIT (288) 46
+INT (289) 54
+FLOAT (290) 53
+STRING (291) 55
+READ (292) 57 58 59 60
+WRITE (293) 61 62 63 64
+NOT (294) 28
+FIB (295) 45
+
+
+Nonterminals, with rules where they appear
+
+$accept (41)
+    on left: 0
+start (42)
+    on left: 1, on right: 0
+programa (43)
+    on left: 2 3, on right: 1 3 14 16 17 19
+sentencia (44)
+    on left: 4 5 6 7 8 9, on right: 2 3
+asignacion (45)
+    on left: 10 11, on right: 4
+seleccion (46)
+    on left: 13, on right: 6
+@1 (47)
+    on left: 12, on right: 13
+bloque_seleccion (48)
+    on left: 14 16, on right: 13
+@2 (49)
+    on left: 15, on right: 16
+bloque_else (50)
+    on left: 17, on right: 16
+iteracion (51)
+    on left: 19, on right: 5
+@3 (52)
+    on left: 18, on right: 19
+condicion (53)
+    on left: 21 23 24, on right: 13 19
+@4 (54)
+    on left: 20, on right: 21
+@5 (55)
+    on left: 22, on right: 23
+comparacion (56)
+    on left: 26 28, on right: 21 23 24
+@6 (57)
+    on left: 25, on right: 26
+@7 (58)
+    on left: 27, on right: 28
+comparador (59)
+    on left: 29 30 31 32 33 34, on right: 26 28
+expresion (60)
+    on left: 35 36 37, on right: 10 26 28 35 36 41
+termino (61)
+    on left: 38 39 40, on right: 35 36 37 38 39
+factor (62)
+    on left: 41 42 43 44 45, on right: 38 39 40
+zonadec (63)
+    on left: 46, on right: 7
+bloque_declaracion (64)
+    on left: 47 48, on right: 46 47
+declaracion (65)
+    on left: 49, on right: 47 48
+multiple_dec (66)
+    on left: 50 51, on right: 49 50
+variable (67)
+    on left: 52, on right: 50 51
+tipo (68)
+    on left: 53 54 55, on right: 49
+constante_string (69)
+    on left: 56, on right: 11
+read (70)
+    on left: 57 58 59 60, on right: 8
+write (71)
+    on left: 61 62 63 64, on right: 9
+
+
+state 0
+
+    0 $accept: . start $end
+
+    ID     shift, and go to state 1
+    IF     shift, and go to state 2
+    CICLO  shift, and go to state 3
+    INIT   shift, and go to state 4
+    READ   shift, and go to state 5
+    WRITE  shift, and go to state 6
+
+    start       go to state 7
+    programa    go to state 8
+    sentencia   go to state 9
+    asignacion  go to state 10
+    seleccion   go to state 11
+    iteracion   go to state 12
+    zonadec     go to state 13
+    read        go to state 14
+    write       go to state 15
+
+
+state 1
+
+   10 asignacion: ID . OP_ASIG expresion
+   11           | ID . OP_ASIG constante_string
+
+    OP_ASIG  shift, and go to state 16
+
+
+state 2
+
+   13 seleccion: IF . PARA condicion PARC @1 bloque_seleccion
+
+    PARA  shift, and go to state 17
+
+
+state 3
+
+   19 iteracion: CICLO . @3 PARA condicion PARC LA programa LC
+
+    $default  reduce using rule 18 (@3)
+
+    @3  go to state 18
+
+
+state 4
+
+   46 zonadec: INIT . LA bloque_declaracion LC
+
+    LA  shift, and go to state 19
+
+
+state 5
+
+   57 read: READ . PARA CTE_S PARC
+   58     | READ . PARA CTE_E PARC
+   59     | READ . PARA ID PARC
+   60     | READ . PARA CTE_R PARC
+
+    PARA  shift, and go to state 20
+
+
+state 6
+
+   61 write: WRITE . PARA CTE_S PARC
+   62      | WRITE . PARA CTE_E PARC
+   63      | WRITE . PARA ID PARC
+   64      | WRITE . PARA CTE_R PARC
+
+    PARA  shift, and go to state 21
+
+
+state 7
+
+    0 $accept: start . $end
+
+    $end  shift, and go to state 22
+
+
+state 8
+
+    1 start: programa .
+    3 programa: programa . sentencia
+
+    ID     shift, and go to state 1
+    IF     shift, and go to state 2
+    CICLO  shift, and go to state 3
+    INIT   shift, and go to state 4
+    READ   shift, and go to state 5
+    WRITE  shift, and go to state 6
+
+    $default  reduce using rule 1 (start)
+
+    sentencia   go to state 23
+    asignacion  go to state 10
+    seleccion   go to state 11
+    iteracion   go to state 12
+    zonadec     go to state 13
+    read        go to state 14
+    write       go to state 15
+
+
+state 9
+
+    2 programa: sentencia .
+
+    $default  reduce using rule 2 (programa)
+
+
+state 10
+
+    4 sentencia: asignacion .
+
+    $default  reduce using rule 4 (sentencia)
+
+
+state 11
+
+    6 sentencia: seleccion .
+
+    $default  reduce using rule 6 (sentencia)
+
+
+state 12
+
+    5 sentencia: iteracion .
+
+    $default  reduce using rule 5 (sentencia)
+
+
+state 13
+
+    7 sentencia: zonadec .
+
+    $default  reduce using rule 7 (sentencia)
+
+
+state 14
+
+    8 sentencia: read .
+
+    $default  reduce using rule 8 (sentencia)
+
+
+state 15
+
+    9 sentencia: write .
+
+    $default  reduce using rule 9 (sentencia)
+
+
+state 16
+
+   10 asignacion: ID OP_ASIG . expresion
+   11           | ID OP_ASIG . constante_string
+
+    CTE_E  shift, and go to state 24
+    CTE_R  shift, and go to state 25
+    ID     shift, and go to state 26
+    PARA   shift, and go to state 27
+    CTE_S  shift, and go to state 28
+    FIB    shift, and go to state 29
+
+    expresion         go to state 30
+    termino           go to state 31
+    factor            go to state 32
+    constante_string  go to state 33
+
+
+state 17
+
+   13 seleccion: IF PARA . condicion PARC @1 bloque_seleccion
+
+    CTE_E  shift, and go to state 24
+    CTE_R  shift, and go to state 25
+    ID     shift, and go to state 26
+    PARA   shift, and go to state 27
+    NOT    shift, and go to state 34
+    FIB    shift, and go to state 29
+
+    condicion    go to state 35
+    comparacion  go to state 36
+    expresion    go to state 37
+    termino      go to state 31
+    factor       go to state 32
+
+
+state 18
+
+   19 iteracion: CICLO @3 . PARA condicion PARC LA programa LC
+
+    PARA  shift, and go to state 38
+
+
+state 19
+
+   46 zonadec: INIT LA . bloque_declaracion LC
+
+    ID  shift, and go to state 39
+
+    bloque_declaracion  go to state 40
+    declaracion         go to state 41
+    multiple_dec        go to state 42
+    variable            go to state 43
+
+
+state 20
+
+   57 read: READ PARA . CTE_S PARC
+   58     | READ PARA . CTE_E PARC
+   59     | READ PARA . ID PARC
+   60     | READ PARA . CTE_R PARC
+
+    CTE_E  shift, and go to state 44
+    CTE_R  shift, and go to state 45
+    ID     shift, and go to state 46
+    CTE_S  shift, and go to state 47
+
+
+state 21
+
+   61 write: WRITE PARA . CTE_S PARC
+   62      | WRITE PARA . CTE_E PARC
+   63      | WRITE PARA . ID PARC
+   64      | WRITE PARA . CTE_R PARC
+
+    CTE_E  shift, and go to state 48
+    CTE_R  shift, and go to state 49
+    ID     shift, and go to state 50
+    CTE_S  shift, and go to state 51
+
+
+state 22
+
+    0 $accept: start $end .
+
+    $default  accept
+
+
+state 23
+
+    3 programa: programa sentencia .
+
+    $default  reduce using rule 3 (programa)
+
+
+state 24
+
+   43 factor: CTE_E .
+
+    $default  reduce using rule 43 (factor)
+
+
+state 25
+
+   44 factor: CTE_R .
+
+    $default  reduce using rule 44 (factor)
+
+
+state 26
+
+   42 factor: ID .
+
+    $default  reduce using rule 42 (factor)
+
+
+state 27
+
+   41 factor: PARA . expresion PARC
+
+    CTE_E  shift, and go to state 24
+    CTE_R  shift, and go to state 25
+    ID     shift, and go to state 26
+    PARA   shift, and go to state 27
+    FIB    shift, and go to state 29
+
+    expresion  go to state 52
+    termino    go to state 31
+    factor     go to state 32
+
+
+state 28
+
+   56 constante_string: CTE_S .
+
+    $default  reduce using rule 56 (constante_string)
+
+
+state 29
+
+   45 factor: FIB . PARA CTE_E PARC
+
+    PARA  shift, and go to state 53
+
+
+state 30
+
+   10 asignacion: ID OP_ASIG expresion .
+   35 expresion: expresion . OP_SUM termino
+   36          | expresion . OP_RES termino
+
+    OP_SUM  shift, and go to state 54
+    OP_RES  shift, and go to state 55
+
+    $default  reduce using rule 10 (asignacion)
+
+
+state 31
+
+   37 expresion: termino .
+   38 termino: termino . OP_MUL factor
+   39        | termino . OP_DIV factor
+
+    OP_MUL  shift, and go to state 56
+    OP_DIV  shift, and go to state 57
+
+    $default  reduce using rule 37 (expresion)
+
+
+state 32
+
+   40 termino: factor .
+
+    $default  reduce using rule 40 (termino)
+
+
+state 33
+
+   11 asignacion: ID OP_ASIG constante_string .
+
+    $default  reduce using rule 11 (asignacion)
+
+
+state 34
+
+   28 comparacion: NOT . expresion @7 comparador expresion
+
+    CTE_E  shift, and go to state 24
+    CTE_R  shift, and go to state 25
+    ID     shift, and go to state 26
+    PARA   shift, and go to state 27
+    FIB    shift, and go to state 29
+
+    expresion  go to state 58
+    termino    go to state 31
+    factor     go to state 32
+
+
+state 35
+
+   13 seleccion: IF PARA condicion . PARC @1 bloque_seleccion
+
+    PARC  shift, and go to state 59
+
+
+state 36
+
+   21 condicion: comparacion . @4 AND comparacion
+   23          | comparacion . @5 OR comparacion
+   24          | comparacion .
+
+    PARC      reduce using rule 24 (condicion)
+    OR        reduce using rule 22 (@5)
+    $default  reduce using rule 20 (@4)
+
+    @4  go to state 60
+    @5  go to state 61
+
+
+state 37
+
+   26 comparacion: expresion . @6 comparador expresion
+   35 expresion: expresion . OP_SUM termino
+   36          | expresion . OP_RES termino
+
+    OP_SUM  shift, and go to state 54
+    OP_RES  shift, and go to state 55
+
+    $default  reduce using rule 25 (@6)
+
+    @6  go to state 62
+
+
+state 38
+
+   19 iteracion: CICLO @3 PARA . condicion PARC LA programa LC
+
+    CTE_E  shift, and go to state 24
+    CTE_R  shift, and go to state 25
+    ID     shift, and go to state 26
+    PARA   shift, and go to state 27
+    NOT    shift, and go to state 34
+    FIB    shift, and go to state 29
+
+    condicion    go to state 63
+    comparacion  go to state 36
+    expresion    go to state 37
+    termino      go to state 31
+    factor       go to state 32
+
+
+state 39
+
+   52 variable: ID .
+
+    $default  reduce using rule 52 (variable)
+
+
+state 40
+
+   46 zonadec: INIT LA bloque_declaracion . LC
+   47 bloque_declaracion: bloque_declaracion . declaracion
+
+    ID  shift, and go to state 39
+    LC  shift, and go to state 64
+
+    declaracion   go to state 65
+    multiple_dec  go to state 42
+    variable      go to state 43
+
+
+state 41
+
+   48 bloque_declaracion: declaracion .
+
+    $default  reduce using rule 48 (bloque_declaracion)
+
+
+state 42
+
+   49 declaracion: multiple_dec . DP tipo
+   50 multiple_dec: multiple_dec . COMA variable
+
+    DP    shift, and go to state 66
+    COMA  shift, and go to state 67
+
+
+state 43
+
+   51 multiple_dec: variable .
+
+    $default  reduce using rule 51 (multiple_dec)
+
+
+state 44
+
+   58 read: READ PARA CTE_E . PARC
+
+    PARC  shift, and go to state 68
+
+
+state 45
+
+   60 read: READ PARA CTE_R . PARC
+
+    PARC  shift, and go to state 69
+
+
+state 46
+
+   59 read: READ PARA ID . PARC
+
+    PARC  shift, and go to state 70
+
+
+state 47
+
+   57 read: READ PARA CTE_S . PARC
+
+    PARC  shift, and go to state 71
+
+
+state 48
+
+   62 write: WRITE PARA CTE_E . PARC
+
+    PARC  shift, and go to state 72
+
+
+state 49
+
+   64 write: WRITE PARA CTE_R . PARC
+
+    PARC  shift, and go to state 73
+
+
+state 50
+
+   63 write: WRITE PARA ID . PARC
+
+    PARC  shift, and go to state 74
+
+
+state 51
+
+   61 write: WRITE PARA CTE_S . PARC
+
+    PARC  shift, and go to state 75
+
+
+state 52
+
+   35 expresion: expresion . OP_SUM termino
+   36          | expresion . OP_RES termino
+   41 factor: PARA expresion . PARC
+
+    OP_SUM  shift, and go to state 54
+    OP_RES  shift, and go to state 55
+    PARC    shift, and go to state 76
+
+
+state 53
+
+   45 factor: FIB PARA . CTE_E PARC
+
+    CTE_E  shift, and go to state 77
+
+
+state 54
+
+   35 expresion: expresion OP_SUM . termino
+
+    CTE_E  shift, and go to state 24
+    CTE_R  shift, and go to state 25
+    ID     shift, and go to state 26
+    PARA   shift, and go to state 27
+    FIB    shift, and go to state 29
+
+    termino  go to state 78
+    factor   go to state 32
+
+
+state 55
+
+   36 expresion: expresion OP_RES . termino
+
+    CTE_E  shift, and go to state 24
+    CTE_R  shift, and go to state 25
+    ID     shift, and go to state 26
+    PARA   shift, and go to state 27
+    FIB    shift, and go to state 29
+
+    termino  go to state 79
+    factor   go to state 32
+
+
+state 56
+
+   38 termino: termino OP_MUL . factor
+
+    CTE_E  shift, and go to state 24
+    CTE_R  shift, and go to state 25
+    ID     shift, and go to state 26
+    PARA   shift, and go to state 27
+    FIB    shift, and go to state 29
+
+    factor  go to state 80
+
+
+state 57
+
+   39 termino: termino OP_DIV . factor
+
+    CTE_E  shift, and go to state 24
+    CTE_R  shift, and go to state 25
+    ID     shift, and go to state 26
+    PARA   shift, and go to state 27
+    FIB    shift, and go to state 29
+
+    factor  go to state 81
+
+
+state 58
+
+   28 comparacion: NOT expresion . @7 comparador expresion
+   35 expresion: expresion . OP_SUM termino
+   36          | expresion . OP_RES termino
+
+    OP_SUM  shift, and go to state 54
+    OP_RES  shift, and go to state 55
+
+    $default  reduce using rule 27 (@7)
+
+    @7  go to state 82
+
+
+state 59
+
+   13 seleccion: IF PARA condicion PARC . @1 bloque_seleccion
+
+    $default  reduce using rule 12 (@1)
+
+    @1  go to state 83
+
+
+state 60
+
+   21 condicion: comparacion @4 . AND comparacion
+
+    AND  shift, and go to state 84
+
+
+state 61
+
+   23 condicion: comparacion @5 . OR comparacion
+
+    OR  shift, and go to state 85
+
+
+state 62
+
+   26 comparacion: expresion @6 . comparador expresion
+
+    CO_IGUAL  shift, and go to state 86
+    CO_DIST   shift, and go to state 87
+    CO_MENI   shift, and go to state 88
+    CO_MEN    shift, and go to state 89
+    CO_MAYI   shift, and go to state 90
+    CO_MAY    shift, and go to state 91
+
+    comparador  go to state 92
+
+
+state 63
+
+   19 iteracion: CICLO @3 PARA condicion . PARC LA programa LC
+
+    PARC  shift, and go to state 93
+
+
+state 64
+
+   46 zonadec: INIT LA bloque_declaracion LC .
+
+    $default  reduce using rule 46 (zonadec)
+
+
+state 65
+
+   47 bloque_declaracion: bloque_declaracion declaracion .
+
+    $default  reduce using rule 47 (bloque_declaracion)
+
+
+state 66
+
+   49 declaracion: multiple_dec DP . tipo
+
+    INT     shift, and go to state 94
+    FLOAT   shift, and go to state 95
+    STRING  shift, and go to state 96
+
+    tipo  go to state 97
+
+
+state 67
+
+   50 multiple_dec: multiple_dec COMA . variable
+
+    ID  shift, and go to state 39
+
+    variable  go to state 98
+
+
+state 68
+
+   58 read: READ PARA CTE_E PARC .
+
+    $default  reduce using rule 58 (read)
+
+
+state 69
+
+   60 read: READ PARA CTE_R PARC .
+
+    $default  reduce using rule 60 (read)
+
+
+state 70
+
+   59 read: READ PARA ID PARC .
+
+    $default  reduce using rule 59 (read)
+
+
+state 71
+
+   57 read: READ PARA CTE_S PARC .
+
+    $default  reduce using rule 57 (read)
+
+
+state 72
+
+   62 write: WRITE PARA CTE_E PARC .
+
+    $default  reduce using rule 62 (write)
+
+
+state 73
+
+   64 write: WRITE PARA CTE_R PARC .
+
+    $default  reduce using rule 64 (write)
+
+
+state 74
+
+   63 write: WRITE PARA ID PARC .
+
+    $default  reduce using rule 63 (write)
+
+
+state 75
+
+   61 write: WRITE PARA CTE_S PARC .
+
+    $default  reduce using rule 61 (write)
+
+
+state 76
+
+   41 factor: PARA expresion PARC .
+
+    $default  reduce using rule 41 (factor)
+
+
+state 77
+
+   45 factor: FIB PARA CTE_E . PARC
+
+    PARC  shift, and go to state 99
+
+
+state 78
+
+   35 expresion: expresion OP_SUM termino .
+   38 termino: termino . OP_MUL factor
+   39        | termino . OP_DIV factor
+
+    OP_MUL  shift, and go to state 56
+    OP_DIV  shift, and go to state 57
+
+    $default  reduce using rule 35 (expresion)
+
+
+state 79
+
+   36 expresion: expresion OP_RES termino .
+   38 termino: termino . OP_MUL factor
+   39        | termino . OP_DIV factor
+
+    OP_MUL  shift, and go to state 56
+    OP_DIV  shift, and go to state 57
+
+    $default  reduce using rule 36 (expresion)
+
+
+state 80
+
+   38 termino: termino OP_MUL factor .
+
+    $default  reduce using rule 38 (termino)
+
+
+state 81
+
+   39 termino: termino OP_DIV factor .
+
+    $default  reduce using rule 39 (termino)
+
+
+state 82
+
+   28 comparacion: NOT expresion @7 . comparador expresion
+
+    CO_IGUAL  shift, and go to state 86
+    CO_DIST   shift, and go to state 87
+    CO_MENI   shift, and go to state 88
+    CO_MEN    shift, and go to state 89
+    CO_MAYI   shift, and go to state 90
+    CO_MAY    shift, and go to state 91
+
+    comparador  go to state 100
+
+
+state 83
+
+   13 seleccion: IF PARA condicion PARC @1 . bloque_seleccion
+
+    LA  shift, and go to state 101
+
+    bloque_seleccion  go to state 102
+
+
+state 84
+
+   21 condicion: comparacion @4 AND . comparacion
+
+    CTE_E  shift, and go to state 24
+    CTE_R  shift, and go to state 25
+    ID     shift, and go to state 26
+    PARA   shift, and go to state 27
+    NOT    shift, and go to state 34
+    FIB    shift, and go to state 29
+
+    comparacion  go to state 103
+    expresion    go to state 37
+    termino      go to state 31
+    factor       go to state 32
+
+
+state 85
+
+   23 condicion: comparacion @5 OR . comparacion
+
+    CTE_E  shift, and go to state 24
+    CTE_R  shift, and go to state 25
+    ID     shift, and go to state 26
+    PARA   shift, and go to state 27
+    NOT    shift, and go to state 34
+    FIB    shift, and go to state 29
+
+    comparacion  go to state 104
+    expresion    go to state 37
+    termino      go to state 31
+    factor       go to state 32
+
+
+state 86
+
+   29 comparador: CO_IGUAL .
+
+    $default  reduce using rule 29 (comparador)
+
+
+state 87
+
+   30 comparador: CO_DIST .
+
+    $default  reduce using rule 30 (comparador)
+
+
+state 88
+
+   31 comparador: CO_MENI .
+
+    $default  reduce using rule 31 (comparador)
+
+
+state 89
+
+   32 comparador: CO_MEN .
+
+    $default  reduce using rule 32 (comparador)
+
+
+state 90
+
+   33 comparador: CO_MAYI .
+
+    $default  reduce using rule 33 (comparador)
+
+
+state 91
+
+   34 comparador: CO_MAY .
+
+    $default  reduce using rule 34 (comparador)
+
+
+state 92
+
+   26 comparacion: expresion @6 comparador . expresion
+
+    CTE_E  shift, and go to state 24
+    CTE_R  shift, and go to state 25
+    ID     shift, and go to state 26
+    PARA   shift, and go to state 27
+    FIB    shift, and go to state 29
+
+    expresion  go to state 105
+    termino    go to state 31
+    factor     go to state 32
+
+
+state 93
+
+   19 iteracion: CICLO @3 PARA condicion PARC . LA programa LC
+
+    LA  shift, and go to state 106
+
+
+state 94
+
+   54 tipo: INT .
+
+    $default  reduce using rule 54 (tipo)
+
+
+state 95
+
+   53 tipo: FLOAT .
+
+    $default  reduce using rule 53 (tipo)
+
+
+state 96
+
+   55 tipo: STRING .
+
+    $default  reduce using rule 55 (tipo)
+
+
+state 97
+
+   49 declaracion: multiple_dec DP tipo .
+
+    $default  reduce using rule 49 (declaracion)
+
+
+state 98
+
+   50 multiple_dec: multiple_dec COMA variable .
+
+    $default  reduce using rule 50 (multiple_dec)
+
+
+state 99
+
+   45 factor: FIB PARA CTE_E PARC .
+
+    $default  reduce using rule 45 (factor)
+
+
+state 100
+
+   28 comparacion: NOT expresion @7 comparador . expresion
+
+    CTE_E  shift, and go to state 24
+    CTE_R  shift, and go to state 25
+    ID     shift, and go to state 26
+    PARA   shift, and go to state 27
+    FIB    shift, and go to state 29
+
+    expresion  go to state 107
+    termino    go to state 31
+    factor     go to state 32
+
+
+state 101
+
+   14 bloque_seleccion: LA . programa LC
+   16                 | LA . programa LC @2 bloque_else
+
+    ID     shift, and go to state 1
+    IF     shift, and go to state 2
+    CICLO  shift, and go to state 3
+    INIT   shift, and go to state 4
+    READ   shift, and go to state 5
+    WRITE  shift, and go to state 6
+
+    programa    go to state 108
+    sentencia   go to state 9
+    asignacion  go to state 10
+    seleccion   go to state 11
+    iteracion   go to state 12
+    zonadec     go to state 13
+    read        go to state 14
+    write       go to state 15
+
+
+state 102
+
+   13 seleccion: IF PARA condicion PARC @1 bloque_seleccion .
+
+    $default  reduce using rule 13 (seleccion)
+
+
+state 103
+
+   21 condicion: comparacion @4 AND comparacion .
+
+    $default  reduce using rule 21 (condicion)
+
+
+state 104
+
+   23 condicion: comparacion @5 OR comparacion .
+
+    $default  reduce using rule 23 (condicion)
+
+
+state 105
+
+   26 comparacion: expresion @6 comparador expresion .
+   35 expresion: expresion . OP_SUM termino
+   36          | expresion . OP_RES termino
+
+    OP_SUM  shift, and go to state 54
+    OP_RES  shift, and go to state 55
+
+    $default  reduce using rule 26 (comparacion)
+
+
+state 106
+
+   19 iteracion: CICLO @3 PARA condicion PARC LA . programa LC
+
+    ID     shift, and go to state 1
+    IF     shift, and go to state 2
+    CICLO  shift, and go to state 3
+    INIT   shift, and go to state 4
+    READ   shift, and go to state 5
+    WRITE  shift, and go to state 6
+
+    programa    go to state 109
+    sentencia   go to state 9
+    asignacion  go to state 10
+    seleccion   go to state 11
+    iteracion   go to state 12
+    zonadec     go to state 13
+    read        go to state 14
+    write       go to state 15
+
+
+state 107
+
+   28 comparacion: NOT expresion @7 comparador expresion .
+   35 expresion: expresion . OP_SUM termino
+   36          | expresion . OP_RES termino
+
+    OP_SUM  shift, and go to state 54
+    OP_RES  shift, and go to state 55
+
+    $default  reduce using rule 28 (comparacion)
+
+
+state 108
+
+    3 programa: programa . sentencia
+   14 bloque_seleccion: LA programa . LC
+   16                 | LA programa . LC @2 bloque_else
+
+    ID     shift, and go to state 1
+    LC     shift, and go to state 110
+    IF     shift, and go to state 2
+    CICLO  shift, and go to state 3
+    INIT   shift, and go to state 4
+    READ   shift, and go to state 5
+    WRITE  shift, and go to state 6
+
+    sentencia   go to state 23
+    asignacion  go to state 10
+    seleccion   go to state 11
+    iteracion   go to state 12
+    zonadec     go to state 13
+    read        go to state 14
+    write       go to state 15
+
+
+state 109
+
+    3 programa: programa . sentencia
+   19 iteracion: CICLO @3 PARA condicion PARC LA programa . LC
+
+    ID     shift, and go to state 1
+    LC     shift, and go to state 111
+    IF     shift, and go to state 2
+    CICLO  shift, and go to state 3
+    INIT   shift, and go to state 4
+    READ   shift, and go to state 5
+    WRITE  shift, and go to state 6
+
+    sentencia   go to state 23
+    asignacion  go to state 10
+    seleccion   go to state 11
+    iteracion   go to state 12
+    zonadec     go to state 13
+    read        go to state 14
+    write       go to state 15
+
+
+state 110
+
+   14 bloque_seleccion: LA programa LC .
+   16                 | LA programa LC . @2 bloque_else
+
+    ELSE      reduce using rule 15 (@2)
+    $default  reduce using rule 14 (bloque_seleccion)
+
+    @2  go to state 112
+
+
+state 111
+
+   19 iteracion: CICLO @3 PARA condicion PARC LA programa LC .
+
+    $default  reduce using rule 19 (iteracion)
+
+
+state 112
+
+   16 bloque_seleccion: LA programa LC @2 . bloque_else
+
+    ELSE  shift, and go to state 113
+
+    bloque_else  go to state 114
+
+
+state 113
+
+   17 bloque_else: ELSE . LA programa LC
+
+    LA  shift, and go to state 115
+
+
+state 114
+
+   16 bloque_seleccion: LA programa LC @2 bloque_else .
+
+    $default  reduce using rule 16 (bloque_seleccion)
+
+
+state 115
+
+   17 bloque_else: ELSE LA . programa LC
+
+    ID     shift, and go to state 1
+    IF     shift, and go to state 2
+    CICLO  shift, and go to state 3
+    INIT   shift, and go to state 4
+    READ   shift, and go to state 5
+    WRITE  shift, and go to state 6
+
+    programa    go to state 116
+    sentencia   go to state 9
+    asignacion  go to state 10
+    seleccion   go to state 11
+    iteracion   go to state 12
+    zonadec     go to state 13
+    read        go to state 14
+    write       go to state 15
+
+
+state 116
+
+    3 programa: programa . sentencia
+   17 bloque_else: ELSE LA programa . LC
+
+    ID     shift, and go to state 1
+    LC     shift, and go to state 117
+    IF     shift, and go to state 2
+    CICLO  shift, and go to state 3
+    INIT   shift, and go to state 4
+    READ   shift, and go to state 5
+    WRITE  shift, and go to state 6
+
+    sentencia   go to state 23
+    asignacion  go to state 10
+    seleccion   go to state 11
+    iteracion   go to state 12
+    zonadec     go to state 13
+    read        go to state 14
+    write       go to state 15
+
+
+state 117
+
+   17 bloque_else: ELSE LA programa LC .
+
+    $default  reduce using rule 17 (bloque_else)

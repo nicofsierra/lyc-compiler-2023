@@ -3,10 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "y.tab.h"
-//#include "ts.h"
 
 //pila
-
 typedef struct nodo {
    int dato;
    struct nodo *siguiente;
@@ -255,75 +253,65 @@ write:
 %%
 
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	crear_pila(&pila_comp);
 	crear_pila(&pila_ciclo);
 	crear_pila(&pila_fib);
 	crear_pila(&pila_sel);
 
 	
-    if((yyin = fopen(argv[1], "rt"))==NULL)
-    {
+    if((yyin = fopen(argv[1], "rt"))==NULL) {
         printf("\n\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
-       
-    }
-    else
-    { 
-        
+    } else { 
         yyparse();
-        
     }
 	
 	fclose(yyin);
-	crear_TS();
 		
     return 0;
 }
 
-int yyerror(void)
-{
+int yyerror(void) {
 	printf("\nError Sintactico\n");
 	exit (1);
 }
 
-void insertar_polaca(char *dato){
+void insertar_polaca(char *dato) {
 	polaca[indice] = dato;
-	indice = indice + 1;
+
+	indice++;
 }
 
-void escribir_polaca(char *dato,int pos){
+void escribir_polaca(char *dato,int pos) {
 	polaca[pos] = dato;
 }
 
-
-void exportar(){
+void exportar() {
 	FILE *archivo;
-	int i = 0;
 	archivo = fopen("intermedio.txt","a");
-	for ( i = 0 ; i < indice ; i++){
+	for (int i = 0 ; i < indice ; i++){
 		
 		/*printf( "%d- %s\n",i,polaca[i]);*/
 		fprintf( archivo , "posicion:%d  | %s |\n", i, polaca[i] );
 	}
+
 	fclose(archivo);
 }
 
-char *convertir( int a )
-{
+char *convertir( int a ) {
 	char *buffer = malloc(2);
 	sprintf(buffer,"%d",a);
+
 	return buffer;
 }
 
-char *copiar( char *dato )
-{
+char *copiar( char *dato ) {
 	char *buffer_cpy = malloc(4);
 	sprintf(buffer_cpy,"%s",dato);
 	return buffer_cpy;
 }
 
-void crear_pila( tPila *nodo ){
+void crear_pila( tPila *nodo ) {
 	*nodo = NULL;
 }
 
@@ -335,7 +323,6 @@ void apilar(int v, tPila *pila) {
    
    nuevo->siguiente = *pila;
    *pila = nuevo;
-  
 }
 
 int desapilar(tPila *pila) {
@@ -349,8 +336,8 @@ int desapilar(tPila *pila) {
    *pila = nodo->siguiente;
    
    v = nodo->dato;
-   
    free(nodo);
+
    return v;
 }
 
