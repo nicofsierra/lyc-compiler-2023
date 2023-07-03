@@ -37,11 +37,13 @@ int indice = 0;
 void insertar_polaca();
 void exportar();
 void escribir_polaca(char *,int );
-char comp[4] = {'0','0','0','\n'} ;
-char notcomp[4] = {'0','0','0','\n'} ;
+int notc = 0;
+char *comp;
+char *notcomp;
 
 //manejo de cadenas
 char *convertir( int );
+char *copiar( char * );
 
 %}
 
@@ -140,30 +142,34 @@ iteracion:
 		;
 
 condicion:
-		  comparacion {insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); insertar_polaca(comp); apilar(indice,&pila_comp); indice++;}
+		  comparacion {insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); if( notc == 0) insertar_polaca(comp); else insertar_polaca(notcomp);
+					   apilar(indice,&pila_comp); indice++;}
 		  AND comparacion {printf("R15: condicion -> comparacion AND comparacion n"); insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); 
-																					  insertar_polaca(comp); apilar(indice,&pila_comp); indice++;}
-		| comparacion {insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); insertar_polaca(comp); insertar_polaca(convertir(indice+1));}
+																					  if( notc == 0) insertar_polaca(comp); else insertar_polaca(notcomp);
+																					  apilar(indice,&pila_comp); indice++;}
+		| comparacion {insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); if( notc == 0) insertar_polaca(comp); else insertar_polaca(notcomp);
+					   insertar_polaca(convertir(indice+1));}
 		  OR comparacion {printf("R16: condicion -> comparacion OR comparacion\n"); insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); 
-																					  insertar_polaca(comp); apilar(indice,&pila_comp); indice++; } 
+																					  if( notc == 0) insertar_polaca(comp); else insertar_polaca(notcomp);
+																					  apilar(indice,&pila_comp); indice++; } 
 		| comparacion {printf("R17: condicion -> comparacion\n"); insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP");
-																  insertar_polaca(comp); apilar(indice,&pila_comp); indice++; }
+																  if( notc == 0) insertar_polaca(comp); else insertar_polaca(notcomp); apilar(indice,&pila_comp); indice++; }
 		;
 		
 comparacion:
-		expresion { insertar_polaca("@aux1"); insertar_polaca("="); } comparador expresion {printf("R18: comparacion -> expresion comparador expresion\n"); 
+		{notc = 0; } expresion { insertar_polaca("@aux1"); insertar_polaca("="); } comparador expresion {printf("R18: comparacion -> expresion comparador expresion\n"); 
 																						 insertar_polaca("@aux2"); insertar_polaca("="); }
-		| NOT expresion { insertar_polaca("@aux1"); insertar_polaca("="); }  comparador expresion {printf("\nR19: comparacion -> NOT expresion comparador expresion\n");
+		| {notc = 1; }NOT expresion { insertar_polaca("@aux1"); insertar_polaca("="); }  comparador expresion {printf("\nR19: comparacion -> NOT expresion comparador expresion\n");
 																						 insertar_polaca("@aux2"); insertar_polaca("="); }
 		;
 		
 comparador:
-		CO_IGUAL {printf("R20: comparador -> ==\n"); sprintf(comp,"%s","BNE"); sprintf(notcomp,"%s","BEQ");}
-		| CO_DIST {printf("R21: comparador -> !=\n"); sprintf(comp,"%s","BEQ"); sprintf(notcomp,"%s","BNE");}
-		| CO_MENI  {printf("R22: comparador -> <=\n"); sprintf(comp,"%s","BGT"); sprintf(notcomp,"%s","BGE");}
-		| CO_MEN {printf("R23: comparador -> <\n"); sprintf(comp,"%s","BGE"); sprintf(notcomp,"%s","BGT");}
-		| CO_MAYI  {printf("R24: comparador -> >=\n"); sprintf(comp,"%s","BLT"); sprintf(notcomp,"%s","BLE");}
-		| CO_MAY   {printf("R25: comparador -> >\n"); sprintf(comp,"%s","BLE"); sprintf(notcomp,"%s","BLT");}
+		CO_IGUAL {printf("R20: comparador -> ==\n"); comp = copiar("BNE"); notcomp = copiar("BEQ");/*sprintf(comp,"%s","BNE"); sprintf(notcomp,"%s","BEQ");*/}
+		| CO_DIST {printf("R21: comparador -> !=\n"); comp = copiar("BEQ"); notcomp = copiar("BNE");/*sprintf(comp,"%s","BEQ"); sprintf(notcomp,"%s","BNE");*/}
+		| CO_MENI  {printf("R22: comparador -> <=\n"); comp = copiar("BGT"); notcomp = copiar("BGE");/*sprintf(comp,"%s","BGT"); sprintf(notcomp,"%s","BGE");*/}
+		| CO_MEN {printf("R23: comparador -> <\n"); comp = copiar("BGE"); notcomp = copiar("BGT");/*sprintf(comp,"%s","BGE"); sprintf(notcomp,"%s","BGT");*/}
+		| CO_MAYI  {printf("R24: comparador -> >=\n"); comp = copiar("BLT"); notcomp = copiar("BLE");/*sprintf(comp,"%s","BLT"); sprintf(notcomp,"%s","BLE");*/}
+		| CO_MAY   {printf("R25: comparador -> >\n"); comp = copiar("BLE"); notcomp = copiar("BLT");/*sprintf(comp,"%s","BLE"); sprintf(notcomp,"%s","BLT");*/}
 		;
 
 expresion:
@@ -312,6 +318,13 @@ char *convertir( int a )
 	return buffer;
 }
 
+char *copiar( char *dato )
+{
+	char *buffer_cpy = malloc(4);
+	sprintf(buffer_cpy,"%s",dato);
+	return buffer_cpy;
+}
+
 void crear_pila( tPila *nodo ){
 	*nodo = NULL;
 }
@@ -346,4 +359,20 @@ int desapilar(tPila *pila) {
 /*void vaciarPila( tPila *pila)
 {
 	free(*pila);
+}*/
+
+/*void generar_asm();
+{
+	FILE *archivo;
+	int i = 0;
+	archivo = fopen("final.asm","a");
+	for ( i = 0 ; i < indice ; i++){
+		if( polaca[i] == "ET" )
+		{
+			fprintf( archivo , "ciclo:" );
+		}
+		if( polaca[i] = "
+	}
+	fclose(archivo);
+	
 }*/

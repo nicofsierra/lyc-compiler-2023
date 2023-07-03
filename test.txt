@@ -65,6 +65,11 @@ ciclo(E > B)
 	E = E - 1
 }
 
+ciclo( not A == B )
+{
+	A = 1
+}
+
 write(A)
 
 *-FUNCION FIB-*
