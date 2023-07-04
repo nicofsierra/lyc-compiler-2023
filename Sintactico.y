@@ -289,9 +289,10 @@ void escribir_polaca(char *dato,int pos) {
 }
 
 void exportar() {
+	int i;
 	FILE *archivo;
 	archivo = fopen("intermedio.txt","a");
-	for (int i = 0 ; i < indice ; i++){
+	for (i = 0 ; i < indice ; i++){
 		
 		/*printf( "%d- %s\n",i,polaca[i]);*/
 		fprintf( archivo , "posicion:%d  | %s |\n", i, polaca[i] );
@@ -301,10 +302,11 @@ void exportar() {
 }
 
 void ver_polaca() {
+	int i;
 	printf("---POLACA INVERSA---\n");
 	printf("| ");
 
-	for (int i = 0; i < indice; i++) {
+	for (i = 0; i < indice; i++) {
 		printf("%s | ", polaca[i]);
 	}
 
