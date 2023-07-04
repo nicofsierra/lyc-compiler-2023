@@ -13,7 +13,9 @@ struct struct_tablaSimbolos{
 
 int guardar_TS(char*, char*, char*);
 int crear_TS();
-int contarChar( char* a );
+struct struct_tablaSimbolos obtener_TS(char*);
+int es_constante(char *);
+int contar_char(char*);
 int puntero_array = 0;
 
 char* str_cpy(char* destino, const char* origen);
@@ -130,7 +132,6 @@ ID				{LETRA}({LETRA}|{DIGITO}|_)*
 {ID}			{yylval.cadena = strdup(yytext); guardar_TS("ID", yytext, ""); return ID; }
 
 
-
 "\n"      		
 "\t"
 "\n\t"
@@ -208,7 +209,7 @@ int crear_TS() {
 
 	fprintf(pf, "%-32s|\t%-15s|\t%-32s|\t%-13s\n\n", "Nombre","Tipo","Valor","Longitud");
 	for (i = 0; i < puntero_array; i++){
-		if (str_cmp(tablaSimbolos[i].tipo, "CTE_E") == 0 || str_cmp(tablaSimbolos[i].tipo, "CTE_R") == 0 || str_cmp(tablaSimbolos[i].tipo, "CTE_S") == 0){  
+		if (es_constante(tablaSimbolos[i].tipo)){  
 			fprintf(pf, "%-32s|\t%-15s|\t%-32s|\t%-13d\n\n", tablaSimbolos[i].nombre, tablaSimbolos[i].tipo, tablaSimbolos[i].valor, tablaSimbolos[i].longitud);
 		} else { 
 			fprintf(pf, "_%-32s|\t%-15s|\t%-32s|\t%-13d\n\n", tablaSimbolos[i].nombre, tablaSimbolos[i].tipo, tablaSimbolos[i].valor, tablaSimbolos[i].longitud);
@@ -217,6 +218,27 @@ int crear_TS() {
 	fclose(pf); 
 	
 	return 1;
+}
+
+struct struct_tablaSimbolos obtener_TS(char* nombre) {
+    int i;
+	struct struct_tablaSimbolos dato;
+
+	for(i = 0; i < puntero_array; i++) {
+		if(str_cmp(tablaSimbolos[i].nombre, nombre) == 0) {
+			return tablaSimbolos[i];
+		}
+	}
+
+    return dato;
+}
+
+int es_constante(char *tipo) {
+	if (str_cmp(tipo, "CTE_E") == 0 || str_cmp(tipo, "CTE_R") == 0 || str_cmp(tipo, "CTE_S") == 0) {
+		return 1;
+	}
+
+    return 0;
 }
 
 char* str_cpy(char* destino, const char* origen) {
@@ -251,7 +273,7 @@ int str_cmp(const char * str1, const char * str2) {
       return -1;
 }
 
-int contarChar( char* a ) {
+int contar_char(char* a) {
 	int i, cont = 0;
 
 	for(i = 0 ; i < 32 ; i++) {	

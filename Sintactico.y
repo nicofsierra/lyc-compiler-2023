@@ -29,6 +29,7 @@ FILE  *yyin;
 int yyerror();
 int yylex();
 int crear_TS();
+struct struct_tablaSimbolos obtener_TS(char*);
 
 //polaca
 char *polaca[100];
@@ -173,7 +174,7 @@ comparador:
 		;
 
 expresion:
-		expresion OP_SUM termino { printf("R26: expresion -> expresion + termino\n"); insertar_polaca($2);}
+		expresion OP_SUM termino {printf("R26: expresion -> expresion + termino\n"); insertar_polaca($2);}
 		| expresion OP_RES termino {printf("R27: expresion -> expresion - termino\n"); insertar_polaca($2);}
 		| termino {printf("R28: expresion -> termino es expresion\n"); }
 		;
