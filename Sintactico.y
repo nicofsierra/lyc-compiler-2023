@@ -3,10 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "y.tab.h"
-//#include "ts.h"
 
 //pila
-
 typedef struct nodo {
    int dato;
    struct nodo *siguiente;
@@ -30,12 +28,14 @@ int yystopparser=0;
 FILE  *yyin;
 int yyerror();
 int yylex();
+int crear_TS();
 
 //polaca
 char *polaca[100];
 int indice = 0;
-void insertar_polaca();
+void insertar_polaca(char *);
 void exportar();
+void ver_polaca();
 void escribir_polaca(char *,int );
 int notc = 0;
 char *comp;
@@ -94,7 +94,7 @@ char *copiar( char * );
 
 %%
 start:
-		programa {printf("Fin del Programa\n"); exportar();}
+		programa {printf("Fin del Programa\n"); exportar(); ver_polaca();}
 ;
 programa:
 		sentencia {printf("R1: programa -> sentencia \n"); } 
@@ -124,12 +124,12 @@ asignacion:
 		;
 
 seleccion:
-		IF PARA condicion PARC { apilar(indice,&pila_sel);} bloque_seleccion {printf("R10: seleccion -> IF ( condicion )\n"); escribir_polaca( convertir(indice), desapilar(&pila_sel)); }
+		IF PARA condicion PARC { apilar(indice, &pila_sel);} bloque_seleccion {printf("R10: seleccion -> IF ( condicion )\n"); escribir_polaca( convertir(indice), desapilar(&pila_sel)); }
 		;
 
 bloque_seleccion: 
 	LA programa LC {printf("R11: bloque_seleccion -> {programa} \n"); escribir_polaca( convertir(indice), desapilar(&pila_comp));escribir_polaca(convertir(indice), desapilar(&pila_sel));}
-	| LA programa LC {escribir_polaca( convertir(indice), desapilar(&pila_sel));insertar_polaca("BI");apilar(indice,&pila_sel);indice++;escribir_polaca( convertir(indice), desapilar(&pila_comp));} bloque_else {escribir_polaca(convertir(indice), desapilar(&pila_sel));printf("R12: bloque_seleccion -> {Programa} ELSE {Programa} bloque_else\n"); }
+	| LA programa LC {escribir_polaca( convertir(indice), desapilar(&pila_sel));insertar_polaca("BI");apilar(indice,&pila_sel);indice++;escribir_polaca( convertir(indice), desapilar(&pila_comp));} bloque_else {escribir_polaca(convertir(indice), desapilar(&pila_sel));printf("R12: bloque_seleccion -> {Programa} bloque_else\n"); }
 	;
 	
 bloque_else:
@@ -209,8 +209,6 @@ zonadec:
 		INIT LA bloque_declaracion LC {
 			printf ("R37: zonadec -> INIT { bloque_declaracion }\n");
 			insertar_polaca($1);
-			//insertar_polaca($2);
-			//insertar_polaca($4);
 		}
 		;
 		
@@ -257,24 +255,16 @@ write:
 %%
 
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	crear_pila(&pila_comp);
 	crear_pila(&pila_ciclo);
 	crear_pila(&pila_fib);
 	crear_pila(&pila_sel);
-
 	
-    if((yyin = fopen(argv[1], "rt"))==NULL)
-    {
+    if((yyin = fopen(argv[1], "rt"))==NULL) {
         printf("\n\nNo se puede abrir el archivo de prueba: %s\n", argv[1]);
-       
-    }
-    else
-    { 
-        
+    } else { 
         yyparse();
-        
     }
 	
 	fclose(yyin);
@@ -283,49 +273,60 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-int yyerror(void)
-{
+int yyerror(void) {
 	printf("\nError Sintactico\n");
 	exit (1);
 }
 
-void insertar_polaca(char *dato){
+void insertar_polaca(char *dato) {
 	polaca[indice] = dato;
-	indice = indice + 1;
+
+	indice++;
 }
 
-void escribir_polaca(char *dato,int pos){
+void escribir_polaca(char *dato,int pos) {
 	polaca[pos] = dato;
 }
 
-
-void exportar(){
+void exportar() {
+	int i;
 	FILE *archivo;
-	int i = 0;
 	archivo = fopen("intermedio.txt","a");
-	for ( i = 0 ; i < indice ; i++){
+	for (i = 0 ; i < indice ; i++){
 		
 		/*printf( "%d- %s\n",i,polaca[i]);*/
 		fprintf( archivo , "posicion:%d  | %s |\n", i, polaca[i] );
 	}
+
 	fclose(archivo);
 }
 
-char *convertir( int a )
-{
+void ver_polaca() {
+	int i;
+	printf("---POLACA INVERSA---\n");
+	printf("| ");
+
+	for (i = 0; i < indice; i++) {
+		printf("%s | ", polaca[i]);
+	}
+
+	printf("\n--------------------\n");
+}
+
+char *convertir( int a ) {
 	char *buffer = malloc(2);
 	sprintf(buffer,"%d",a);
+
 	return buffer;
 }
 
-char *copiar( char *dato )
-{
+char *copiar( char *dato ) {
 	char *buffer_cpy = malloc(4);
 	sprintf(buffer_cpy,"%s",dato);
 	return buffer_cpy;
 }
 
-void crear_pila( tPila *nodo ){
+void crear_pila( tPila *nodo ) {
 	*nodo = NULL;
 }
 
@@ -337,7 +338,6 @@ void apilar(int v, tPila *pila) {
    
    nuevo->siguiente = *pila;
    *pila = nuevo;
-  
 }
 
 int desapilar(tPila *pila) {
@@ -351,8 +351,8 @@ int desapilar(tPila *pila) {
    *pila = nodo->siguiente;
    
    v = nodo->dato;
-   
    free(nodo);
+
    return v;
 }
 
