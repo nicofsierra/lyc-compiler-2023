@@ -4,6 +4,20 @@
 #include <string.h>
 #include "y.tab.h"
 
+/*------------ESTRUCTURAS DE DATOS------------*/
+enum tipo_dato{
+	TipoEntero,
+	TipoReal,
+	TipoString,
+	TipoSinDefinir
+};
+
+typedef struct variable {
+	char* nombre;
+	enum tipo_dato tipo;
+} variable;
+/*--------------------------------------------*/
+
 //pila
 typedef struct nodo {
    int dato;
@@ -19,8 +33,30 @@ tPila pila_fib;
 tPila pila_sel;
 int indiceTemp;
 
+/*-------------VARIABLES GLOBALES-------------*/
+int es_asignacion = 0;
+enum tipo_dato tipo_declaracion;
+enum tipo_dato tipo_asignacion;
+enum tipo_dato tipo_factor;
+enum tipo_dato tipo_termino;
+enum tipo_dato tipo_expresion;
+enum tipo_dato tipo_comparacion;
+enum tipo_dato tipo_comparacion_anidada;
+int indice_tabla_variables = 0;
+int indice_pila_variable = 0;
+struct variable tabla_variables[1000];
+struct variable pila_variable[100];
+/*--------------------------------------------*/
+
+/*-------------FUNCIONES VARIABLE-------------*/
+void agregar_tabla_variable(char*, enum tipo_dato);
+enum tipo_dato obtener_tipo(char* nombre);
+void apilar_variable(char*);
+void desapilar_variables(enum tipo_dato);
+/*--------------------------------------------*/
+
 //funciones pila
-void crear_pila( tPila * );
+void crear_pila(tPila *);
 void apilar(int , tPila *);
 int desapilar(tPila *);
 
@@ -28,8 +64,8 @@ int yystopparser=0;
 FILE  *yyin;
 int yyerror();
 int yylex();
+int yyerrorTipo();
 int crear_TS();
-struct struct_tablaSimbolos obtener_TS(char*);
 
 //polaca
 char *polaca[100];
@@ -43,16 +79,16 @@ char *comp;
 char *notcomp;
 
 //manejo de cadenas
-char *convertir( int );
-char *copiar( char * );
+char *convertir(int);
+char *copiar(char *);
+int str_cmp(const char*, const char*);
+char* str_cpy(char*, const char*);
 
 %}
 
-%union
- {
+%union {
  char *cadena;
 }
-
 
 %token<cadena> CTE_E
 %token<cadena> CTE_R
@@ -112,15 +148,29 @@ sentencia:
 		;
 
 asignacion:
-		ID OP_ASIG expresion { 
-			printf("R9: asignacion -> ID = expresion \n"); 
-			insertar_polaca($1);
-			insertar_polaca($2);
+		ID {
+				es_asignacion=1; 
+				tipo_asignacion=obtener_tipo($1); 
+				insertar_polaca($1);
+			} OP_ASIG expresion {
+				if (tipo_asignacion == tipo_expresion) {
+					yyerrorTipo();
+				}
+
+				printf("R9: asignacion -> ID = expresion \n");
+				insertar_polaca($1);
+				es_asignacion=0;
 		}
-		| ID OP_ASIG constante_string {
-			printf("R10: asignacion -> ID = cte_s \n"); 
-			insertar_polaca($1);
-			insertar_polaca($2);
+		| ID {
+				tipo_asignacion=obtener_tipo($1); 
+				if (tipo_asignacion != TipoString) {
+					yyerrorTipo();
+				}
+
+				insertar_polaca($1);
+			} OP_ASIG constante_string {
+				printf("R10: asignacion -> ID = cte_s \n"); 
+				insertar_polaca($1);
 		}
 		;
 
@@ -143,25 +193,115 @@ iteracion:
 		;
 
 condicion:
-		  comparacion {insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); if( notc == 0) insertar_polaca(comp); else insertar_polaca(notcomp);
-					   apilar(indice,&pila_comp); indice++;}
-		  AND comparacion {printf("R15: condicion -> comparacion AND comparacion n"); insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); 
-																					  if( notc == 0) insertar_polaca(comp); else insertar_polaca(notcomp);
-																					  apilar(indice,&pila_comp); indice++;}
-		| comparacion {insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); if( notc == 0) insertar_polaca(comp); else insertar_polaca(notcomp);
-					   insertar_polaca(convertir(indice+1));}
-		  OR comparacion {printf("R16: condicion -> comparacion OR comparacion\n"); insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP"); 
-																					  if( notc == 0) insertar_polaca(comp); else insertar_polaca(notcomp);
-																					  apilar(indice,&pila_comp); indice++; } 
-		| comparacion {printf("R17: condicion -> comparacion\n"); insertar_polaca("@aux1"); insertar_polaca("@aux2"); insertar_polaca("CMP");
-																  if( notc == 0) insertar_polaca(comp); else insertar_polaca(notcomp); apilar(indice,&pila_comp); indice++; }
+		comparacion {
+			insertar_polaca("@aux1"); 
+			insertar_polaca("@aux2"); 
+			insertar_polaca("CMP"); 
+
+			if( notc == 0) {
+				insertar_polaca(comp); 
+			} else {
+				insertar_polaca(notcomp);
+			}
+
+			apilar(indice,&pila_comp); 
+			indice++;
+			tipo_comparacion_anidada=tipo_comparacion;
+		} AND comparacion {
+			if (tipo_comparacion_anidada != tipo_comparacion) {
+				yyerrorTipo();
+			}
+
+			printf("R15: condicion -> comparacion AND comparacion n"); 
+			insertar_polaca("@aux1"); 
+			insertar_polaca("@aux2"); 
+			insertar_polaca("CMP"); 
+			
+			if(notc == 0) {
+				insertar_polaca(comp); 
+			} else { 
+				insertar_polaca(notcomp) ;
+			}
+
+			apilar(indice,&pila_comp);
+			indice++;
+		};
+		| comparacion {
+			insertar_polaca("@aux1"); 
+			insertar_polaca("@aux2"); 
+			insertar_polaca("CMP"); 
+			if(notc == 0) {
+				insertar_polaca(comp); 
+			} else {
+				insertar_polaca(notcomp);
+			}
+
+			insertar_polaca(convertir(indice+1));
+			tipo_comparacion_anidada=tipo_comparacion;
+		}
+		  OR comparacion {
+			if (tipo_comparacion_anidada != tipo_comparacion) {
+				yyerrorTipo();
+			}
+
+			printf("R16: condicion -> comparacion OR comparacion\n");
+			insertar_polaca("@aux1");
+			insertar_polaca("@aux2");
+			insertar_polaca("CMP"); 
+			
+			if(notc == 0) {
+				insertar_polaca(comp); 
+			} else {
+				insertar_polaca(notcomp);
+			}
+			
+			apilar(indice,&pila_comp);
+			indice++;
+		} 
+		| comparacion {
+			printf("R17: condicion -> comparacion\n");
+			insertar_polaca("@aux1"); 
+			insertar_polaca("@aux2"); 
+			insertar_polaca("CMP");
+			
+			if(notc == 0) {
+				insertar_polaca(comp);
+			} else {
+				insertar_polaca(notcomp); 
+			}
+
+			apilar(indice,&pila_comp); 
+			indice++;
+		}
 		;
 		
 comparacion:
-		{notc = 0; } expresion { insertar_polaca("@aux1"); insertar_polaca("="); } comparador expresion {printf("R18: comparacion -> expresion comparador expresion\n"); 
-																						 insertar_polaca("@aux2"); insertar_polaca("="); }
-		| {notc = 1; }NOT expresion { insertar_polaca("@aux1"); insertar_polaca("="); }  comparador expresion {printf("\nR19: comparacion -> NOT expresion comparador expresion\n");
-																						 insertar_polaca("@aux2"); insertar_polaca("="); }
+		{notc = 0;} expresion {
+			insertar_polaca("@aux1");
+			insertar_polaca("=");
+			tipo_comparacion=tipo_expresion;
+			} comparador expresion {
+				if (tipo_comparacion != tipo_expresion) {
+					yyerrorTipo();
+				}
+
+				printf("R18: comparacion -> expresion comparador expresion\n"); 
+				insertar_polaca("@aux2"); 
+				insertar_polaca("=");
+			}
+		| {notc = 1;} NOT expresion { 
+			insertar_polaca("@aux1");
+			insertar_polaca("=");
+			tipo_comparacion=tipo_expresion;
+			}  comparador expresion {
+				if (tipo_comparacion != tipo_expresion) {
+					yyerrorTipo();
+				}
+
+				printf("\nR19: comparacion -> NOT expresion comparador expresion\n");
+				insertar_polaca("@aux2");
+				insertar_polaca("=");
+			}
 		;
 		
 comparador:
@@ -174,22 +314,50 @@ comparador:
 		;
 
 expresion:
-		expresion OP_SUM termino {printf("R26: expresion -> expresion + termino\n"); insertar_polaca($2);}
-		| expresion OP_RES termino {printf("R27: expresion -> expresion - termino\n"); insertar_polaca($2);}
-		| termino {printf("R28: expresion -> termino es expresion\n"); }
+		expresion OP_SUM termino {
+			if (tipo_expresion != tipo_termino) {
+				yyerrorTipo();
+			}
+			
+			printf("R26: expresion -> expresion + termino\n");
+			insertar_polaca($2);
+		}
+		| expresion OP_RES termino {
+			if (tipo_expresion != tipo_termino) {
+				yyerrorTipo();
+			}
+			
+			printf("R27: expresion -> expresion - termino\n");
+			insertar_polaca($2);
+		}
+		| termino {printf("R28: expresion -> termino es expresion\n"); tipo_expresion=tipo_termino;}
 		;
 		
 termino:
-		termino OP_MUL factor {printf("R29: termino -> termino * factor\n"); insertar_polaca($2);}
-		| termino OP_DIV factor {printf("R30: termino -> termino / factor\n"); insertar_polaca($2);}
-		| factor {printf("R31: termino -> factor es termino\n"); }
+		termino OP_MUL factor {
+			if (tipo_termino != tipo_factor) {
+				yyerrorTipo();
+			}
+
+			printf("R29: termino -> termino * factor\n"); 
+			insertar_polaca($2);
+		}
+		| termino OP_DIV factor {
+			if (tipo_termino != tipo_factor) {
+				yyerrorTipo();
+			}
+
+			printf("R30: termino -> termino / factor\n"); 
+			insertar_polaca($2);
+		}
+		| factor {printf("R31: termino -> factor es termino\n"); tipo_termino=tipo_factor;}
 		;
 		
 factor:
-		PARA  expresion PARC {printf("R32: factor -> ( expresion )\n"); }
-		| ID {printf("R33: factor -> ID\n"); insertar_polaca($1); }
-		| CTE_E {printf("R34: factor -> CTE_E\n"); insertar_polaca($1);}
-		| CTE_R {printf("R35: factor -> CTE_R\n"); insertar_polaca($1); }
+		PARA  expresion PARC {printf("R32: factor -> ( expresion )\n");}
+		| ID {printf("R33: factor -> ID\n"); insertar_polaca($1); tipo_factor=TipoString;}
+		| CTE_E {printf("R34: factor -> CTE_E\n"); insertar_polaca($1); tipo_factor=TipoEntero;}
+		| CTE_R {printf("R35: factor -> CTE_R\n"); insertar_polaca($1); tipo_factor=TipoReal;}
 		| FIB PARA CTE_E PARC { printf("R36: factor -> FIB ( CTE_E )\n"); insertar_polaca("0"); insertar_polaca("@cont"); insertar_polaca("=");
 																insertar_polaca("0"); insertar_polaca("@ret"); insertar_polaca("=");
 																insertar_polaca("0"); insertar_polaca("@term1"); insertar_polaca("=");
@@ -219,7 +387,11 @@ bloque_declaracion:
 		;
 		
 declaracion:
-		multiple_dec DP tipo { printf("R40: declaracion -> multiple_dec : tipo\n"); insertar_polaca($2); }
+		multiple_dec DP tipo {
+			printf("R40: declaracion -> multiple_dec : tipo\n");
+			insertar_polaca($2);
+			desapilar_variables(tipo_declaracion);
+		}
 		;
 		
 multiple_dec:
@@ -228,17 +400,17 @@ multiple_dec:
 		;
 		
 variable:
-		ID { printf("R43: variable -> ID\n"); insertar_polaca($1); } 
+		ID { printf("R43: variable -> ID\n"); insertar_polaca($1); apilar_variable($1);} 
 		;
 		
 tipo:
-		FLOAT {printf ("R44: tipo -> FLOAT\n"); insertar_polaca($1);} 
-		| INT {printf ("R45: tipo -> INT\n"); insertar_polaca($1);}
-		| STRING {printf ("R46: tipo -> STRING\n"); insertar_polaca($1); }
+		FLOAT {printf ("R44: tipo -> FLOAT\n"); insertar_polaca($1); tipo_declaracion=TipoReal;} 
+		| INT {printf ("R45: tipo -> INT\n"); insertar_polaca($1); tipo_declaracion=TipoEntero;}
+		| STRING {printf ("R46: tipo -> STRING\n"); insertar_polaca($1); tipo_declaracion=TipoString;}
 		;
 		
 constante_string:
-		CTE_S { printf ("R47: constante_string -> CTE_S\n"); insertar_polaca($1);}
+		CTE_S { printf ("R47: constante_string -> CTE_S\n"); insertar_polaca($1); tipo_declaracion=TipoString;}
 		;
 
 read:
@@ -277,6 +449,11 @@ int main(int argc, char *argv[]) {
 int yyerror(void) {
 	printf("\nError Sintactico\n");
 	exit (1);
+}
+
+int yyerrorTipo() {
+	printf("\nError Sintáctico de tipo.\n");
+	exit(1);
 }
 
 void insertar_polaca(char *dato) {
@@ -357,23 +534,37 @@ int desapilar(tPila *pila) {
    return v;
 }
 
-/*void vaciarPila( tPila *pila)
-{
-	free(*pila);
-}*/
+void agregar_tabla_variable(char* nombre, enum tipo_dato tipo) {
+	str_cpy(tabla_variables[indice_tabla_variables].nombre, nombre);
+	tabla_variables[indice_tabla_variables].tipo = tipo;
 
-/*void generar_asm();
-{
-	FILE *archivo;
-	int i = 0;
-	archivo = fopen("final.asm","a");
-	for ( i = 0 ; i < indice ; i++){
-		if( polaca[i] == "ET" )
-		{
-			fprintf( archivo , "ciclo:" );
+	indice_tabla_variables++;
+}
+
+enum tipo_dato obtener_tipo(char* nombre) {
+	int i;
+
+	for (i = 0; i < indice_tabla_variables; i++) {
+		if (str_cmp(tabla_variables[i].nombre, nombre) == 0) {
+			return tabla_variables[i].tipo;
 		}
-		if( polaca[i] = "
 	}
-	fclose(archivo);
-	
-}*/
+
+	return TipoSinDefinir;
+}
+
+void apilar_variable(char* nombre) {
+	str_cpy(pila_variable[indice_pila_variable].nombre, nombre);
+
+	indice_pila_variable++;
+}
+
+void desapilar_variables(enum tipo_dato tipo) {
+	int i;
+
+	for (i = 0; i < indice_pila_variable; i++) {
+		agregar_tabla_variable(pila_variable[i].nombre, tipo);
+	}
+
+	indice_pila_variable = 0;
+}
