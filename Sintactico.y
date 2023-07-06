@@ -11,11 +11,6 @@ enum tipo_dato{
 	TipoString,
 	TipoSinDefinir
 };
-
-typedef struct variable {
-	char* nombre;
-	enum tipo_dato tipo;
-} variable;
 /*--------------------------------------------*/
 
 //pila
@@ -44,8 +39,9 @@ enum tipo_dato tipo_comparacion;
 enum tipo_dato tipo_comparacion_anidada;
 int indice_tabla_variables = 0;
 int indice_pila_variable = 0;
-struct variable tabla_variables[1000];
-struct variable pila_variable[100];
+char* tabla_variables[1000];
+enum tipo_dato tabla_tipos[1000];
+char* pila_variable[1000];
 /*--------------------------------------------*/
 
 /*-------------FUNCIONES VARIABLE-------------*/
@@ -153,7 +149,7 @@ asignacion:
 				tipo_asignacion=obtener_tipo($1); 
 				insertar_polaca($1);
 			} OP_ASIG expresion {
-				if (tipo_asignacion == tipo_expresion) {
+				if (tipo_asignacion != tipo_expresion) {
 					yyerrorTipo();
 				}
 
@@ -355,7 +351,7 @@ termino:
 		
 factor:
 		PARA  expresion PARC {printf("R32: factor -> ( expresion )\n");}
-		| ID {printf("R33: factor -> ID\n"); insertar_polaca($1); tipo_factor=TipoString;}
+		| ID {printf("R33: factor -> ID\n"); insertar_polaca($1); tipo_factor=obtener_tipo($1);}
 		| CTE_E {printf("R34: factor -> CTE_E\n"); insertar_polaca($1); tipo_factor=TipoEntero;}
 		| CTE_R {printf("R35: factor -> CTE_R\n"); insertar_polaca($1); tipo_factor=TipoReal;}
 		| FIB PARA CTE_E PARC { printf("R36: factor -> FIB ( CTE_E )\n"); insertar_polaca("0"); insertar_polaca("@cont"); insertar_polaca("=");
@@ -535,18 +531,29 @@ int desapilar(tPila *pila) {
 }
 
 void agregar_tabla_variable(char* nombre, enum tipo_dato tipo) {
-	str_cpy(tabla_variables[indice_tabla_variables].nombre, nombre);
-	tabla_variables[indice_tabla_variables].tipo = tipo;
+	tabla_variables[indice_tabla_variables] = (char*)malloc(50 * sizeof(char));
+	str_cpy(tabla_variables[indice_tabla_variables], nombre);
+
+	tabla_tipos[indice_tabla_variables] = tipo;
+
+	printf("\n-------NUEVA VARIABLE Y TIPO-------\n");
+		printf("%s ---- ", tabla_variables[indice_tabla_variables]);
+		printf("%d", tabla_tipos[indice_tabla_variables]);
+		printf("\n------------------\n\n");
 
 	indice_tabla_variables++;
 }
 
 enum tipo_dato obtener_tipo(char* nombre) {
 	int i;
-
+	//printf("\n\n%s\n\n", pila_variable[i]);
 	for (i = 0; i < indice_tabla_variables; i++) {
-		if (str_cmp(tabla_variables[i].nombre, nombre) == 0) {
-			return tabla_variables[i].tipo;
+		printf("\n-------VARIABLE-------\n");
+		printf("%s ---- ", tabla_variables[i]);
+		printf("%d", tabla_tipos[i]);
+		printf("\n------------------\n\n");
+		if (str_cmp(tabla_variables[i], nombre) == 0) {
+			return tabla_tipos[i];
 		}
 	}
 
@@ -554,8 +561,9 @@ enum tipo_dato obtener_tipo(char* nombre) {
 }
 
 void apilar_variable(char* nombre) {
-	str_cpy(pila_variable[indice_pila_variable].nombre, nombre);
-
+	pila_variable[indice_pila_variable] = (char*)malloc(50 * sizeof(char));
+	str_cpy(pila_variable[indice_pila_variable], nombre);
+	
 	indice_pila_variable++;
 }
 
@@ -563,7 +571,7 @@ void desapilar_variables(enum tipo_dato tipo) {
 	int i;
 
 	for (i = 0; i < indice_pila_variable; i++) {
-		agregar_tabla_variable(pila_variable[i].nombre, tipo);
+		agregar_tabla_variable(pila_variable[i], tipo);
 	}
 
 	indice_pila_variable = 0;
