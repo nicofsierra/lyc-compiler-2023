@@ -5,6 +5,17 @@
 #include "y.tab.h"
 //#include "ts.h"
 
+//estructuras
+typedef struct {
+	char *nombre;
+	char *tipo;
+	int valor;
+	unsigned int longitud;
+}var;
+
+var lista_variables[100];
+var lista_constantes[100];
+
 //pila
 
 typedef struct nodo {
@@ -12,13 +23,22 @@ typedef struct nodo {
    struct nodo *siguiente;
 } tipoNodo;
 
+typedef struct nodo_c{
+   char * dato;
+   struct nodo_c *siguiente;
+} tipoNodo_c;
+
 typedef tipoNodo *pNodo;
+typedef tipoNodo_c *pNodo_c;
 typedef tipoNodo *tPila;
+typedef tipoNodo_c *tPila_c;
 
 tPila pila_comp;
 tPila pila_ciclo;
 tPila pila_fib;
 tPila pila_sel;
+tPila pila_bi;
+tPila_c pila_op;
 int indiceTemp;
 
 //funciones pila
@@ -26,24 +46,37 @@ void crear_pila( tPila * );
 void apilar(int , tPila *);
 int desapilar(tPila *);
 
+void crear_pila_c( tPila_c * );
+void apilar_c(char * , tPila_c *);
+char *desapilar_c(tPila_c *);
+
 int yystopparser=0;
 FILE  *yyin;
 int yyerror();
 int yylex();
 
 //polaca
-char *polaca[100];
+char *polaca[1000];
 int indice = 0;
 void insertar_polaca();
+void generar_asm();
 void exportar();
 void escribir_polaca(char *,int );
 int notc = 0;
 char *comp;
 char *notcomp;
+void recorrerPolaca(FILE *);
+
 
 //manejo de cadenas
 char *convertir( int );
 char *copiar( char * );
+
+//variables
+int indice_variables = 0;
+int indice_constantes = 0;
+int total_tipos = 0;
+char *tipo ;
 
 %}
 
@@ -94,7 +127,7 @@ char *copiar( char * );
 
 %%
 start:
-		programa {printf("Fin del Programa\n"); exportar();}
+		programa {printf("Fin del Programa\n"); exportar(); generar_asm();}
 ;
 programa:
 		sentencia {printf("R1: programa -> sentencia \n"); } 
@@ -122,19 +155,13 @@ asignacion:
 			insertar_polaca($2);
 		}
 		;
-
+		
 seleccion:
-		IF PARA condicion PARC { apilar(indice,&pila_sel);} bloque_seleccion {printf("R10: seleccion -> IF ( condicion )\n"); escribir_polaca( convertir(indice), desapilar(&pila_sel)); }
+		IF PARA condicion PARC LA programa LC { escribir_polaca( convertir(indice), desapilar(&pila_comp)); printf("R11: bloque_seleccion -> {programa} \n"); }
+		| IF PARA condicion PARC LA programa LC { insertar_polaca("BI"); apilar( indice , &pila_bi); indice++; escribir_polaca( convertir(indice), desapilar(&pila_comp)); } 
+		ELSE LA programa LC { printf("R12: bloque_seleccion -> {Programa} ELSE {Programa} bloque_else\n"); escribir_polaca( convertir(indice), desapilar(&pila_bi) );  }
 		;
-
-bloque_seleccion: 
-	LA programa LC {printf("R11: bloque_seleccion -> {programa} \n"); escribir_polaca( convertir(indice), desapilar(&pila_comp));escribir_polaca(convertir(indice), desapilar(&pila_sel));}
-	| LA programa LC {escribir_polaca( convertir(indice), desapilar(&pila_sel));insertar_polaca("BI");apilar(indice,&pila_sel);indice++;escribir_polaca( convertir(indice), desapilar(&pila_comp));} bloque_else {escribir_polaca(convertir(indice), desapilar(&pila_sel));printf("R12: bloque_seleccion -> {Programa} ELSE {Programa} bloque_else\n"); }
-	;
 	
-bloque_else:
-	ELSE LA programa LC {printf("\nR13: bloque_else -> ELSE {Programa}\n"); }
-	;
 
 iteracion:
 		CICLO {apilar(indice,&pila_ciclo); insertar_polaca("ET");   }PARA condicion PARC LA programa LC {printf("R14: iteracion -> CICLO (Condicion) { programa }\n"); 
@@ -164,12 +191,12 @@ comparacion:
 		;
 		
 comparador:
-		CO_IGUAL {printf("R20: comparador -> ==\n"); comp = copiar("BNE"); notcomp = copiar("BEQ");/*sprintf(comp,"%s","BNE"); sprintf(notcomp,"%s","BEQ");*/}
-		| CO_DIST {printf("R21: comparador -> !=\n"); comp = copiar("BEQ"); notcomp = copiar("BNE");/*sprintf(comp,"%s","BEQ"); sprintf(notcomp,"%s","BNE");*/}
-		| CO_MENI  {printf("R22: comparador -> <=\n"); comp = copiar("BGT"); notcomp = copiar("BGE");/*sprintf(comp,"%s","BGT"); sprintf(notcomp,"%s","BGE");*/}
-		| CO_MEN {printf("R23: comparador -> <\n"); comp = copiar("BGE"); notcomp = copiar("BGT");/*sprintf(comp,"%s","BGE"); sprintf(notcomp,"%s","BGT");*/}
-		| CO_MAYI  {printf("R24: comparador -> >=\n"); comp = copiar("BLT"); notcomp = copiar("BLE");/*sprintf(comp,"%s","BLT"); sprintf(notcomp,"%s","BLE");*/}
-		| CO_MAY   {printf("R25: comparador -> >\n"); comp = copiar("BLE"); notcomp = copiar("BLT");/*sprintf(comp,"%s","BLE"); sprintf(notcomp,"%s","BLT");*/}
+		CO_IGUAL {printf("R20: comparador -> ==\n"); comp = copiar("BNE"); notcomp = copiar("BEQ");}
+		| CO_DIST {printf("R21: comparador -> !=\n"); comp = copiar("BEQ"); notcomp = copiar("BNE");}
+		| CO_MENI  {printf("R22: comparador -> <=\n"); comp = copiar("BGT"); notcomp = copiar("BLT");}
+		| CO_MEN {printf("R23: comparador -> <\n"); comp = copiar("BGE"); notcomp = copiar("BGT");}
+		| CO_MAYI  {printf("R24: comparador -> >=\n"); comp = copiar("BLT"); notcomp = copiar("BLE");}
+		| CO_MAY   {printf("R25: comparador -> >\n"); comp = copiar("BLE"); notcomp = copiar("BLT");}
 		;
 
 expresion:
@@ -187,8 +214,12 @@ termino:
 factor:
 		PARA  expresion PARC {printf("R32: factor -> ( expresion )\n"); }
 		| ID {printf("R33: factor -> ID\n"); insertar_polaca($1); }
-		| CTE_E {printf("R34: factor -> CTE_E\n"); insertar_polaca($1);}
-		| CTE_R {printf("R35: factor -> CTE_R\n"); insertar_polaca($1); }
+		| CTE_E {printf("R34: factor -> CTE_E\n"); insertar_polaca($1); lista_constantes[indice_constantes].nombre = copiar($1); ;
+																		lista_constantes[indice_constantes].tipo = copiar("Int");
+																		lista_constantes[indice_constantes].valor = atoi($1); indice_constantes++;  }
+		| CTE_R {printf("R35: factor -> CTE_R\n"); insertar_polaca($1); lista_constantes[indice_constantes].nombre = copiar($1);
+																		lista_constantes[indice_constantes].tipo = copiar("Float");		
+																	    lista_constantes[indice_constantes].valor = atoi($1); indice_constantes++;  }
 		| FIB PARA CTE_E PARC { printf("R36: factor -> FIB ( CTE_E )\n"); insertar_polaca("0"); insertar_polaca("@cont"); insertar_polaca("=");
 																insertar_polaca("0"); insertar_polaca("@ret"); insertar_polaca("=");
 																insertar_polaca("0"); insertar_polaca("@term1"); insertar_polaca("=");
@@ -208,7 +239,7 @@ factor:
 zonadec:
 		INIT LA bloque_declaracion LC {
 			printf ("R37: zonadec -> INIT { bloque_declaracion }\n");
-			insertar_polaca($1);
+			//insertar_polaca($1);
 			//insertar_polaca($2);
 			//insertar_polaca($4);
 		}
@@ -220,26 +251,32 @@ bloque_declaracion:
 		;
 		
 declaracion:
-		multiple_dec DP tipo { printf("R40: declaracion -> multiple_dec : tipo\n"); insertar_polaca($2); }
+		multiple_dec DP tipo { int j; for( j = total_tipos; j < indice_variables; j++ )
+										lista_variables[j].tipo = copiar(tipo);
+									  total_tipos = indice_variables;
+							   printf("R40: declaracion -> multiple_dec : tipo\n"); insertar_polaca($2); }
 		;
 		
 multiple_dec:
-		multiple_dec COMA variable { printf("R41: multiple_dec -> multiple_dec , variable\n"); insertar_polaca($2); } 
+		multiple_dec COMA variable { printf("R41: multiple_dec -> multiple_dec , variable\n"); /*insertar_polaca($2);*/ } 
 		| variable { printf("R42: multiple_dec -> variable\n"); } 
 		;
 		
 variable:
-		ID { printf("R43: variable -> ID\n"); insertar_polaca($1); } 
+		ID { lista_variables[indice_variables].nombre = copiar($1); indice_variables++; 
+			 printf("R43: variable -> ID\n"); insertar_polaca($1); } 
 		;
 		
 tipo:
-		FLOAT {printf ("R44: tipo -> FLOAT\n"); insertar_polaca($1);} 
-		| INT {printf ("R45: tipo -> INT\n"); insertar_polaca($1);}
-		| STRING {printf ("R46: tipo -> STRING\n"); insertar_polaca($1); }
+		FLOAT {printf ("R44: tipo -> FLOAT\n"); insertar_polaca($1); tipo = copiar($1);} 
+		| INT {printf ("R45: tipo -> INT\n"); insertar_polaca($1); tipo = copiar($1);}
+		| STRING {printf ("R46: tipo -> STRING\n"); insertar_polaca($1); tipo = copiar($1); }
 		;
 		
 constante_string:
-		CTE_S { printf ("R47: constante_string -> CTE_S\n"); insertar_polaca($1);}
+		CTE_S { printf ("R47: constante_string -> CTE_S\n"); insertar_polaca($1); lista_constantes[indice_constantes].nombre = copiar($1);
+																				  lista_constantes[indice_constantes].tipo = copiar("String");
+																				  lista_constantes[indice_constantes].longitud = strlen($1); indice_constantes++;}
 		;
 
 read:
@@ -263,6 +300,7 @@ int main(int argc, char *argv[])
 	crear_pila(&pila_ciclo);
 	crear_pila(&pila_fib);
 	crear_pila(&pila_sel);
+	crear_pila_c(&pila_op);
 
 	
     if((yyin = fopen(argv[1], "rt"))==NULL)
@@ -329,10 +367,25 @@ void crear_pila( tPila *nodo ){
 	*nodo = NULL;
 }
 
+void crear_pila_c( tPila_c *nodo ){
+	*nodo = NULL;
+}
+
 void apilar(int v, tPila *pila) {
    pNodo nuevo;
 
    nuevo = (pNodo)malloc(sizeof(tipoNodo));
+   nuevo->dato = v;
+   
+   nuevo->siguiente = *pila;
+   *pila = nuevo;
+  
+}
+
+void apilar_c(char *v, tPila_c *pila) {
+   pNodo_c nuevo;
+
+   nuevo = (pNodo_c)malloc(sizeof(tipoNodo_c));
    nuevo->dato = v;
    
    nuevo->siguiente = *pila;
@@ -356,23 +409,128 @@ int desapilar(tPila *pila) {
    return v;
 }
 
+char *desapilar_c(tPila_c *pila) {
+   pNodo_c nodo; 
+   char *v;      
+
+   nodo = *pila;
+   
+   if(!nodo) return 0; 
+  
+   *pila = nodo->siguiente;
+   
+   v = nodo->dato;
+   
+   free(nodo);
+   return v;
+}
+
 /*void vaciarPila( tPila *pila)
 {
 	free(*pila);
 }*/
 
-/*void generar_asm();
+void generar_asm()
 {
 	FILE *archivo;
 	int i = 0;
-	archivo = fopen("final.asm","a");
-	for ( i = 0 ; i < indice ; i++){
-		if( polaca[i] == "ET" )
-		{
-			fprintf( archivo , "ciclo:" );
-		}
-		if( polaca[i] = "
+	archivo = fopen("final.asm","w+");
+	
+	fprintf(archivo,"include macros2.asm\n");
+	fprintf(archivo,"include number.asm\n\n");
+	fprintf(archivo,".MODEL LARGE\n.STACK 200h\n.386\n.387\n.DATA\n\n");
+
+	//DECLARACION DE VARIABLES
+	for(i = 0; i<indice_variables; i++){
+		fprintf(archivo,"\t@%s ",lista_variables[i].nombre);
+		if(strcmp(lista_variables[i].tipo,"Int")==0)
+			fprintf(archivo,"\tDD 0.0\n");
+		else
+			if(strcmp(lista_variables[i].tipo,"Float")==0)
+				fprintf(archivo,"\tDD 0.0\n");
+			else
+				if(strcmp(lista_variables[i].tipo,"String")==0)
+					fprintf(archivo,"\tDB MAXTEXTSIZE dup (?),'$'\n");
 	}
+
+	//DECLARACION DE CONSTANTES
+	for(i = 0; i<indice_constantes; i++){
+		if(strcmp(lista_constantes[i].tipo,"Int")==0)
+			fprintf(archivo,"\t_%s \tDD %d.0\n",lista_constantes[i].nombre,lista_constantes[i].valor);
+		else
+			/*if (strcmp(lista_constantes[i].tipo,"Float")==0)
+				fprintf(archivo,"\t@%s \tDD %d\n",lista_constantes[i].nombre,lista_constantes[i].valor);
+			else*/
+				if(strcmp(lista_constantes[i].tipo,"String")==0)
+					fprintf(archivo,"\t_%s \tDB \"%d\",'$',%d dup(?)\n",lista_constantes[i].nombre,lista_constantes[i].valor,50-lista_constantes[i].longitud);
+	}
+	
+	fprintf(archivo,"\t@@filter \tDD 0.0\n");
+	fprintf(archivo,"\t@@allequal \tDD 0.0\n");
+	fprintf(archivo,"\t@null \tDD -1.0\n");
+	fprintf(archivo,"\n.CODE\n.startup\n\tmov AX,@DATA\n\tmov DS,AX\n\n\tFINIT\n\n");
+	
+	recorrerPolaca(archivo);
+	fprintf(archivo,"\tmov ah, 4ch\n\tint 21h\n\n;FIN DEL PROGRAMA DE USUARIO\n");
+	
 	fclose(archivo);
 	
-}*/
+}
+
+void recorrerPolaca(FILE *archivo){
+	
+	int i;
+	char *op1;
+	char *op2;
+	
+	for( i = 0 ; i < indice ; i++)
+	{
+		
+		
+		
+		//ASIGNACIONES
+		
+		//OPERADORES	
+		//if( strchr( polaca[i] , "+*-/" ) != NULL )
+		//{
+			
+			apilar_c( polaca[i] , &pila_op );
+			if(strcmp(polaca[i],"+")==0 )
+			{
+				op1 = copiar(desapilar_c(&pila_op));
+				op2 = copiar(desapilar_c(&pila_op));
+				fprintf(archivo,"\tFLD %s\n",op1);
+				fprintf(archivo,"\tFLD %s\n",op2);
+				fprintf(archivo,"\tFADD\n");
+			}
+			/*if(strcmp(polaca[i],"*")==0 )
+			{	
+				fprintf(archivo,"\tFLD %s\n",polaca[i-2]);
+				fprintf(archivo,"\tFLD %s\n",polaca[i-1]);
+				fprintf(archivo,"\tFMUL\n");
+			}
+			if(strcmp(polaca[i],"/")==0 )
+			{
+				fprintf(archivo,"\tFLD %s\n",polaca[i-2]);
+				fprintf(archivo,"\tFLD %s\n",polaca[i-1]);
+				fprintf(archivo,"\tFDIV\n");
+			}
+			if(strcmp(polaca[i],"-")==0 )
+			{
+				fprintf(archivo,"\tFLD %s\n",polaca[i-2]);
+				fprintf(archivo,"\tFLD %s\n",polaca[i-1]);
+				fprintf(archivo,"\tFSUB\n");
+			}*/
+		
+		//}
+			
+	
+	}
+	
+	
+
+	
+
+
+}
+

@@ -1,8 +1,8 @@
 *-ZONA DE DECLARACION DE VARIABLES-*
 init
 {
-	A, B, C, D, E: Int
-	H, R: Float
+	A, B, C, D, E, Z: Int
+	H, R2: Float
 	G, F, W: String
 	fib1, fib2, fib3: Int
 	variable1: Int
