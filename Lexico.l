@@ -13,7 +13,7 @@ struct struct_tablaSimbolos{
 
 int guardar_TS(char*, char*, char*);
 int crear_TS();
-struct struct_tablaSimbolos obtener_TS(char*);
+char* obtener_tipo_TS(char*);
 int es_constante(char *);
 int contar_char(char*);
 int puntero_array = 0;
@@ -187,7 +187,7 @@ int guardar_TS (char* tipo, char* nombre, char* valor) {
 	str_cpy(tablaSimbolos[puntero_array].tipo, tipo);
 	str_cpy(tablaSimbolos[puntero_array].valor, valor);
 
-	if(tipo == "CTE_S") {
+	if(str_cmp(tipo, "CTE_S") == 0) {
 		int longitud = strlen(nombre);
 		tablaSimbolos[puntero_array].longitud = longitud;
 	}
@@ -220,17 +220,16 @@ int crear_TS() {
 	return 1;
 }
 
-struct struct_tablaSimbolos obtener_TS(char* nombre) {
+char* obtener_tipo_TS(char* nombre) {
     int i;
-	struct struct_tablaSimbolos dato;
 
 	for(i = 0; i < puntero_array; i++) {
 		if(str_cmp(tablaSimbolos[i].nombre, nombre) == 0) {
-			return tablaSimbolos[i];
+			return tablaSimbolos[i].tipo;
 		}
 	}
 
-    return dato;
+    return "";
 }
 
 int es_constante(char *tipo) {
