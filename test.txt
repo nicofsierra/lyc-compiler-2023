@@ -1,8 +1,10 @@
 *-ZONA DE DECLARACION DE VARIABLES-*
 init
 {
-	A, B, C, D, E, Z: Int
-	H, R2: Float
+	A, B, C, D, Z: Int
+	H, E, R2: Float
+	*-VERIFICACION TIPOS-*
+	*-W : Int-*
 	G, F, W: String
 	fib1, fib2, fib3: Int
 	variable1: Int
@@ -45,7 +47,7 @@ if(A == 4 || B != 9) {
 
 *-CICLO-*
 ciclo(E > B) {
-	E = E - 1
+	E = E - 1.1
 }
 
 ciclo( not A == B )
@@ -64,6 +66,9 @@ ciclo( not A == B )
 *-W := "0123456789012345678901234356789"-*
 *-@-*
 *-FIN ERRORES LEXICO-*
+
+*-VERIFICACION TIPOS-*
+*-W = 2.3-*
 
 read(F)
 write(F)

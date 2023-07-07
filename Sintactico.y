@@ -73,7 +73,7 @@ void recorrerPolaca(FILE *);
 int esOperando(char *);
 int verficarDeclaracion(char *);
 int verificarCtesRepetidas(char *);
-int verificarTipo(char *);
+int verificarTipo(int, char *);
 int esEntradaSalida(char *);
 char *obtenerTipo( char *);
 
@@ -88,12 +88,12 @@ int indice_auxiliares = 0;
 int indice_inout = 0;
 int indice_id = 0;
 int total_tipos = 0;
-char *tipo ;
+char *tipo;
 char *var_asig;
 int notc = 0;
 char *comp;
 char *notcomp;
-char *tipo;
+int tipo_validar;
 
 %}
 
@@ -153,7 +153,7 @@ programa:
 		;
 		
 sentencia:
-		asignacion	{ printf("R3: sentencia -> asignacion ");}
+		asignacion	{ printf("R3: sentencia -> asignacion \n");}
 		| iteracion { printf("R4: sentencia -> iteracion \n"); }
 		| seleccion { printf("R5: sentencia -> seleccion \n"); }
 		| zonadec { printf("R6: sentencia -> zonadec \n"); }
@@ -165,14 +165,14 @@ asignacion:
 		ID OP_ASIG expresion { 
 			printf("R9: asignacion -> ID(%s) = expresion \n",$1); 
 			if( verficarDeclaracion($1) == 0 ) {printf("\n\n\tVariable %s no inicializada\n",$1); return -1;} 
-			if( verificarTipo(tipo) == 0 ) {printf("\n\n\tVariable %s no es de tipo %s\n",$1,tipo); return -1; tipo = copiar("");}
+			if( verificarTipo(tipo_validar,$1) == 0 ) {printf("\n\n\tError de tipos variable %s\n",$1); return -1; } tipo_validar = 0 ;
 			insertar_polaca($1);
 			insertar_polaca($2);
 		}
 		| ID OP_ASIG constante_string {
 			printf("R10: asignacion -> ID = cte_s \n"); 
 			if( verficarDeclaracion($1) == 0 ) {printf("\n\n\tVariable %s no inicializada\n",$1); return -1;}
-			if( verificarTipo(tipo) == 0 ) {printf("\n\n\tVariable %s no es de tipo %s\n",$1,tipo); return -1; tipo = copiar("");}
+			if( verificarTipo(tipo_validar,$1) == 0 ) {printf("\n\n\tError de tipos variable %s\n",$1); return -1;} tipo_validar = 0 ;  
 			insertar_polaca($1);
 			insertar_polaca($2);
 		}
@@ -230,21 +230,18 @@ expresion:
 		
 termino:
 		termino OP_MUL factor {printf("R29: termino -> termino * factor\n"); insertar_polaca($2);}
-		| termino OP_DIV factor {printf("R30: termino -> termino / factor\n"); insertar_polaca($2); tipo = copiar("Float");}
+		| termino OP_DIV factor {printf("R30: termino -> termino / factor\n"); insertar_polaca($2); tipo_validar = 1; }
 		| factor {printf("R31: termino -> factor es termino\n"); }
 		;
 		
 factor:
 		PARA  expresion PARC {printf("R32: factor -> ( expresion )\n"); }
 		| ID {printf("R33: factor -> ID\n"); insertar_polaca($1); lista_id[indice_id].nombre = copiar($1); indice_id++;}
-		| CTE_E {printf("R34: factor -> CTE_E\n"); insertar_polaca($1); if( strcmp( tipo , "Float") == 0 )
-																			tipo = copiar("Float");
-																		if( strcmp( tipo , "Int") == 0)	
-																			tipo = copiar("Int");
+		| CTE_E {printf("R34: factor -> CTE_E(%s)\n",$1); insertar_polaca($1); if( tipo_validar != 1) tipo_validar = 2; else tipo_validar= 1;
 																		if( !verificarCtesRepetidas($1) ) {lista_constantes[indice_constantes].nombre = copiar($1); ;
 																		lista_constantes[indice_constantes].tipo = copiar("Int");
 																		lista_constantes[indice_constantes].valor = atoi($1); indice_constantes++; } }
-		| CTE_R {printf("R35: factor -> CTE_R\n"); insertar_polaca($1); tipo = copiar("Float"); if( !verificarCtesRepetidas($1) ) {lista_constantes[indice_constantes].nombre = copiar($1);
+		| CTE_R {printf("R35: factor -> CTE_R(%s)\n",$1); insertar_polaca($1); tipo_validar = 1;  if( !verificarCtesRepetidas($1) ) {lista_constantes[indice_constantes].nombre = copiar($1);
 																		lista_constantes[indice_constantes].tipo = copiar("Float");		
 																		lista_constantes[indice_constantes].valor_f = atof($1); indice_constantes++;  }}
 		| FIB PARA CTE_E PARC { printf("R36: factor -> FIB ( CTE_E )\n"); insertar_polaca("0"); insertar_polaca("@cont"); insertar_polaca("=");
@@ -299,7 +296,7 @@ tipo:
 		;
 		
 constante_string:
-		CTE_S { printf ("R47: constante_string -> CTE_S\n"); insertar_polaca($1); tipo = copiar("String");
+		CTE_S { printf ("R47: constante_string -> CTE_S(%s)\n",$1); insertar_polaca($1); tipo_validar = 3;
 																				  lista_constantes[indice_constantes].nombre = copiar($1);
 																				  lista_constantes[indice_constantes].tipo = copiar("String");
 																				  lista_constantes[indice_constantes].longitud = strlen($1); indice_constantes++;}
@@ -394,7 +391,7 @@ char *convertir( int a ) {
 }
 
 char *copiar( char *dato ) {
-	char *buffer_cpy = malloc(5);
+	char *buffer_cpy = malloc(10);
 	sprintf(buffer_cpy,"%s",dato);
 	return buffer_cpy;
 }
@@ -692,14 +689,25 @@ int verificarCtesRepetidas(char *dato)
 	return 0;
 }
 
-int verificarTipo(char *tipo)
+int verificarTipo(int tipo, char *variable)
 {
 	int i ;
-	
+	char *tipo_c;
+	printf( "%d", tipo );
+	if( tipo == 1 )
+		tipo_c = copiar( "Float" );
+	if( tipo == 2 )
+		tipo_c = copiar("Int");
+	if( tipo == 3 )
+		tipo_c = copiar("String");
+	printf("%s",tipo_c);
 	for( i = 0 ; i < indice_variables ; i ++ )
 	{
-			if( strcmp( tipo , lista_variables[i].tipo) == 0){ 
-			return 1;}
+			if( strcmp( variable , lista_variables[i].nombre) == 0){ 
+				if( strcmp( tipo_c , lista_variables[i].tipo) == 0){
+					return 1;
+				}
+			}
 	}	
 	
 	return 0;
@@ -719,7 +727,7 @@ char *obtenerTipo( char *dato )
 	int i = 0;
 	for( i = 0 ; i < indice_inout ; i ++ )
 	{
-		if( strcmp( dato , lista_inout[indice_inout].nombre ) == 0 ){ printf("%s\n",lista_inout[indice_inout].tipo);
+		if( strcmp( dato , lista_inout[indice_inout].nombre ) == 0 ){ 
 		return lista_inout[indice_inout].tipo ;}
 	}		
 	return 0;

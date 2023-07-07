@@ -8,11 +8,11 @@ _C                               |	ID             |	                            
 
 _D                               |	ID             |	                                |	0            
 
-_E                               |	ID             |	                                |	0            
-
 _Z                               |	ID             |	                                |	0            
 
 _H                               |	ID             |	                                |	0            
+
+_E                               |	ID             |	                                |	0            
 
 _R2                              |	ID             |	                                |	0            
 
@@ -47,6 +47,8 @@ _variable1                       |	ID             |	                            
 9                               |	CTE_E          |	9                               |	0            
 
 3                               |	CTE_E          |	3                               |	0            
+
+1.1                             |	CTE_R          |	1.1                             |	0            
 
 "chau"                          |	CTE_S          |	"chau"                          |	6            
 

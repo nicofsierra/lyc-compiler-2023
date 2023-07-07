@@ -2,11 +2,11 @@ posicion:0  | A |
 posicion:1  | B |
 posicion:2  | C |
 posicion:3  | D |
-posicion:4  | E |
-posicion:5  | Z |
-posicion:6  | Int |
-posicion:7  | : |
-posicion:8  | H |
+posicion:4  | Z |
+posicion:5  | Int |
+posicion:6  | : |
+posicion:7  | H |
+posicion:8  | E |
 posicion:9  | R2 |
 posicion:10  | Float |
 posicion:11  | : |
@@ -147,7 +147,7 @@ posicion:145  | CMP |
 posicion:146  | BLE |
 posicion:147  | 155 |
 posicion:148  | E |
-posicion:149  | 1 |
+posicion:149  | 1.1 |
 posicion:150  | - |
 posicion:151  | E |
 posicion:152  | = |

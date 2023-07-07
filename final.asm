@@ -11,9 +11,9 @@ include number.asm
 	@B 	DD 0.0
 	@C 	DD 0.0
 	@D 	DD 0.0
-	@E 	DD 0.0
 	@Z 	DD 0.0
 	@H 	DD 0.0
+	@E 	DD 0.0
 	@R2 	DD 0.0
 	@G 	DB MAXTEXTSIZE dup (?),'$'
 	@F 	DB MAXTEXTSIZE dup (?),'$'
@@ -31,6 +31,7 @@ include number.asm
 	_4 	DD 4.0
 	_9 	DD 9.0
 	_3 	DD 3.0
+	_1.1 	DD 1.1
 	@aux1 	DD 0.0
 	@aux2 	DD 0.0
 	@null 	DD -1.0
@@ -107,7 +108,7 @@ include number.asm
 	FLD @B
 	FST @aux2
 	FLD @E
-	FLD _1
+	FLD _1.1
 	FSUB
 	FST @exp5
 	FLD @exp5
