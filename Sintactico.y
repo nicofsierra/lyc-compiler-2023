@@ -9,11 +9,15 @@ typedef struct {
 	char *nombre;
 	char *tipo;
 	int valor;
+	float valor_f;
 	unsigned int longitud;
 }var;
 
 var lista_variables[100];
 var lista_constantes[100];
+var lista_id[100];
+var lista_auxiliares[100];
+var lista_inout[100];
 
 //pila
 typedef struct nodo {
@@ -59,16 +63,19 @@ struct struct_tablaSimbolos obtener_TS(char*);
 char *polaca[1000];
 int indice = 0;
 
+//funciones
 void generar_asm();
 void insertar_polaca(char *);
 void exportar();
 void ver_polaca();
 void escribir_polaca(char *,int );
-int notc = 0;
-char *comp;
-char *notcomp;
 void recorrerPolaca(FILE *);
-
+int esOperando(char *);
+int verficarDeclaracion(char *);
+int verificarCtesRepetidas(char *);
+int verificarTipo(char *);
+int esEntradaSalida(char *);
+char *obtenerTipo( char *);
 
 //manejo de cadenas
 char *convertir( int );
@@ -77,8 +84,16 @@ char *copiar( char * );
 //variables
 int indice_variables = 0;
 int indice_constantes = 0;
+int indice_auxiliares = 0;
+int indice_inout = 0;
+int indice_id = 0;
 int total_tipos = 0;
 char *tipo ;
+char *var_asig;
+int notc = 0;
+char *comp;
+char *notcomp;
+char *tipo;
 
 %}
 
@@ -148,12 +163,16 @@ sentencia:
 
 asignacion:
 		ID OP_ASIG expresion { 
-			printf("R9: asignacion -> ID = expresion \n"); 
+			printf("R9: asignacion -> ID(%s) = expresion \n",$1); 
+			if( verficarDeclaracion($1) == 0 ) {printf("\n\n\tVariable %s no inicializada\n",$1); return -1;} 
+			if( verificarTipo(tipo) == 0 ) {printf("\n\n\tVariable %s no es de tipo %s\n",$1,tipo); return -1; tipo = copiar("");}
 			insertar_polaca($1);
 			insertar_polaca($2);
 		}
 		| ID OP_ASIG constante_string {
 			printf("R10: asignacion -> ID = cte_s \n"); 
+			if( verficarDeclaracion($1) == 0 ) {printf("\n\n\tVariable %s no inicializada\n",$1); return -1;}
+			if( verificarTipo(tipo) == 0 ) {printf("\n\n\tVariable %s no es de tipo %s\n",$1,tipo); return -1; tipo = copiar("");}
 			insertar_polaca($1);
 			insertar_polaca($2);
 		}
@@ -211,19 +230,23 @@ expresion:
 		
 termino:
 		termino OP_MUL factor {printf("R29: termino -> termino * factor\n"); insertar_polaca($2);}
-		| termino OP_DIV factor {printf("R30: termino -> termino / factor\n"); insertar_polaca($2);}
+		| termino OP_DIV factor {printf("R30: termino -> termino / factor\n"); insertar_polaca($2); tipo = copiar("Float");}
 		| factor {printf("R31: termino -> factor es termino\n"); }
 		;
 		
 factor:
 		PARA  expresion PARC {printf("R32: factor -> ( expresion )\n"); }
-		| ID {printf("R33: factor -> ID\n"); insertar_polaca($1); }
-		| CTE_E {printf("R34: factor -> CTE_E\n"); insertar_polaca($1); lista_constantes[indice_constantes].nombre = copiar($1); ;
+		| ID {printf("R33: factor -> ID\n"); insertar_polaca($1); lista_id[indice_id].nombre = copiar($1); indice_id++;}
+		| CTE_E {printf("R34: factor -> CTE_E\n"); insertar_polaca($1); if( strcmp( tipo , "Float") == 0 )
+																			tipo = copiar("Float");
+																		if( strcmp( tipo , "Int") == 0)	
+																			tipo = copiar("Int");
+																		if( !verificarCtesRepetidas($1) ) {lista_constantes[indice_constantes].nombre = copiar($1); ;
 																		lista_constantes[indice_constantes].tipo = copiar("Int");
-																		lista_constantes[indice_constantes].valor = atoi($1); indice_constantes++;  }
-		| CTE_R {printf("R35: factor -> CTE_R\n"); insertar_polaca($1); lista_constantes[indice_constantes].nombre = copiar($1);
+																		lista_constantes[indice_constantes].valor = atoi($1); indice_constantes++; } }
+		| CTE_R {printf("R35: factor -> CTE_R\n"); insertar_polaca($1); tipo = copiar("Float"); if( !verificarCtesRepetidas($1) ) {lista_constantes[indice_constantes].nombre = copiar($1);
 																		lista_constantes[indice_constantes].tipo = copiar("Float");		
-																	    lista_constantes[indice_constantes].valor = atoi($1); indice_constantes++;  }
+																		lista_constantes[indice_constantes].valor_f = atof($1); indice_constantes++;  }}
 		| FIB PARA CTE_E PARC { printf("R36: factor -> FIB ( CTE_E )\n"); insertar_polaca("0"); insertar_polaca("@cont"); insertar_polaca("=");
 																insertar_polaca("0"); insertar_polaca("@ret"); insertar_polaca("=");
 																insertar_polaca("0"); insertar_polaca("@term1"); insertar_polaca("=");
@@ -252,8 +275,9 @@ bloque_declaracion:
 		;
 		
 declaracion:
-		multiple_dec DP tipo { int j; for( j = total_tipos; j < indice_variables; j++ )
-										lista_variables[j].tipo = copiar(tipo);
+		multiple_dec DP tipo { int j; for( j = total_tipos; j < indice_variables; j++ ){
+											lista_variables[j].tipo = copiar(tipo);
+										}
 									  total_tipos = indice_variables;
 							   printf("R40: declaracion -> multiple_dec : tipo\n"); insertar_polaca($2); }
 		;
@@ -275,22 +299,29 @@ tipo:
 		;
 		
 constante_string:
-		CTE_S { printf ("R47: constante_string -> CTE_S\n"); insertar_polaca($1); lista_constantes[indice_constantes].nombre = copiar($1);
+		CTE_S { printf ("R47: constante_string -> CTE_S\n"); insertar_polaca($1); tipo = copiar("String");
+																				  lista_constantes[indice_constantes].nombre = copiar($1);
 																				  lista_constantes[indice_constantes].tipo = copiar("String");
 																				  lista_constantes[indice_constantes].longitud = strlen($1); indice_constantes++;}
 		;
 
 read:
-		READ PARA CTE_S PARC{ printf("R48: read -> READ (CTE_S)\n"); insertar_polaca($1); insertar_polaca($3);}
-		| READ PARA CTE_E PARC{printf("R49: read -> READ (CTE_E)\n"); insertar_polaca($1); insertar_polaca($3);}
-		| READ PARA ID PARC {printf("R50: read -> READ (ID)\n"); insertar_polaca($1); insertar_polaca($3);}
-		| READ PARA CTE_R PARC{printf("R51: read -> READ (CTE_R)\n"); insertar_polaca($1); insertar_polaca($3);}
+		READ PARA CTE_S PARC{ printf("R48: read -> READ (CTE_S)\n"); insertar_polaca($1); insertar_polaca($3);lista_inout[indice_inout].nombre = copiar($3); 
+																	 lista_inout[indice_inout].tipo = copiar("String"); indice_inout++;}
+		| READ PARA CTE_E PARC{printf("R49: read -> READ (CTE_E)\n"); insertar_polaca($1); insertar_polaca($3);lista_inout[indice_inout].nombre = copiar($3); 
+																      lista_inout[indice_inout].tipo = copiar("Int"); indice_inout++;}
+		| READ PARA ID PARC {printf("R50: read -> READ (ID)\n"); insertar_polaca($1); insertar_polaca($3);lista_inout[indice_inout].nombre = copiar($3); indice_inout++;}
+		| READ PARA CTE_R PARC{printf("R51: read -> READ (CTE_R)\n"); insertar_polaca($1); insertar_polaca($3);lista_inout[indice_inout].nombre = copiar($3); 
+																	  lista_inout[indice_inout].tipo = copiar("Float"); indice_inout++;}
 		;
 write:
-		WRITE PARA CTE_S PARC{ printf("R51: write -> WRITE (CTE_S)\n"); insertar_polaca($1); insertar_polaca($3);}
-		| WRITE PARA CTE_E PARC{printf("R52: write -> WRITE (CTE_E)\n"); insertar_polaca($1); insertar_polaca($3);}
-		| WRITE PARA ID PARC{printf("R53: write -> WRITE (ID)\n"); insertar_polaca($1); insertar_polaca($3);}
-		| WRITE PARA CTE_R PARC{printf("R54: write -> WRITE (CTE_R)\n"); insertar_polaca($1); insertar_polaca($3); }
+		WRITE PARA CTE_S PARC{ printf("R51: write -> WRITE (CTE_S)\n"); insertar_polaca($1); insertar_polaca($3);lista_inout[indice_inout].nombre = copiar($3); 
+																        lista_inout[indice_inout].tipo = copiar("String"); indice_inout++; printf("%s\n",lista_inout[indice_inout].nombre);}
+		| WRITE PARA CTE_E PARC{printf("R52: write -> WRITE (CTE_E)\n"); insertar_polaca($1); insertar_polaca($3);lista_inout[indice_inout].nombre = copiar($3); 
+																	     lista_inout[indice_inout].tipo = copiar("Int"); indice_inout++;}
+		| WRITE PARA ID PARC{printf("R53: write -> WRITE (ID)\n"); insertar_polaca($1); insertar_polaca($3); lista_inout[indice_inout].nombre = copiar($3); indice_inout++;}
+		| WRITE PARA CTE_R PARC{printf("R54: write -> WRITE (CTE_R)\n"); insertar_polaca($1); insertar_polaca($3); lista_inout[indice_inout].nombre = copiar($3); 
+																		 lista_inout[indice_inout].tipo = copiar("Float"); indice_inout++; }
 		;
 %%
 
@@ -356,14 +387,14 @@ void ver_polaca() {
 }
 
 char *convertir( int a ) {
-	char *buffer = malloc(2);
+	char *buffer = malloc(4);
 	sprintf(buffer,"%d",a);
 
 	return buffer;
 }
 
 char *copiar( char *dato ) {
-	char *buffer_cpy = malloc(4);
+	char *buffer_cpy = malloc(5);
 	sprintf(buffer_cpy,"%s",dato);
 	return buffer_cpy;
 }
@@ -440,6 +471,7 @@ void generar_asm()
 	int i = 0;
 	archivo = fopen("final.asm","w+");
 	
+	
 	fprintf(archivo,"include macros2.asm\n");
 	fprintf(archivo,"include number.asm\n\n");
 	fprintf(archivo,".MODEL LARGE\n.STACK 200h\n.386\n.387\n.DATA\n\n");
@@ -462,17 +494,25 @@ void generar_asm()
 		if(strcmp(lista_constantes[i].tipo,"Int")==0)
 			fprintf(archivo,"\t_%s \tDD %d.0\n",lista_constantes[i].nombre,lista_constantes[i].valor);
 		else
-			/*if (strcmp(lista_constantes[i].tipo,"Float")==0)
-				fprintf(archivo,"\t@%s \tDD %d\n",lista_constantes[i].nombre,lista_constantes[i].valor);
-			else*/
+			if (strcmp(lista_constantes[i].tipo,"Float")==0)
+				fprintf(archivo,"\t_%s \tDD %.1f\n",lista_constantes[i].nombre,lista_constantes[i].valor_f);
+			else
 				if(strcmp(lista_constantes[i].tipo,"String")==0)
 					fprintf(archivo,"\t_%s \tDB \"%d\",'$',%d dup(?)\n",lista_constantes[i].nombre,lista_constantes[i].valor,50-lista_constantes[i].longitud);
 	}
 	
-	fprintf(archivo,"\t@@filter \tDD 0.0\n");
-	fprintf(archivo,"\t@@allequal \tDD 0.0\n");
+	//DECLARACION AUXILIARES
+	
+	lista_auxiliares[0].nombre = copiar("@aux1");
+	lista_auxiliares[1].nombre = copiar("@aux2");
+	fprintf(archivo,"\t%s \tDD 0.0\n",lista_auxiliares[0].nombre);
+	fprintf(archivo,"\t%s \tDD 0.0\n",lista_auxiliares[1].nombre);
+	
+	
+	
+	
 	fprintf(archivo,"\t@null \tDD -1.0\n");
-	fprintf(archivo,"\n.CODE\n.startup\n\tmov AX,@DATA\n\tmov DS,AX\n\n\tFINIT\n\n");
+	fprintf(archivo,"\n.CODE\n.startup\n\tmov AX,@DATA\n\tmov DS,AX\n\n");
 	
 	recorrerPolaca(archivo);
 	fprintf(archivo,"\tmov ah, 4ch\n\tint 21h\n\n;FIN DEL PROGRAMA DE USUARIO\n");
@@ -486,55 +526,203 @@ void recorrerPolaca(FILE *archivo){
 	int i;
 	char *op1;
 	char *op2;
+	char *buffer;
+	int aux = 0;
+	char *operando;
+	buffer = copiar("@exp");
+	strcat(buffer,convertir(aux));
+	
 	
 	for( i = 0 ; i < indice ; i++)
 	{
-		
-		
-		
-		//ASIGNACIONES
-		
+		if( polaca[i] != NULL){
 		//OPERADORES	
-		//if( strchr( polaca[i] , "+*-/" ) != NULL )
-		//{
 			
-			apilar_c( polaca[i] , &pila_op );
+			if( esOperando(polaca[i]) == 1 ) {
+				operando = copiar("@");
+				strcat(operando,polaca[i]);
+				apilar_c( operando , &pila_op );
+			}
+			if( esOperando(polaca[i]) == 2 ) {
+				operando = copiar("_");
+				strcat(operando,polaca[i]);
+				apilar_c( operando , &pila_op );
+			}
+			
+			if( esOperando(polaca[i]) == 3 ) {
+				apilar_c( polaca[i] , &pila_op );
+			}
 			if(strcmp(polaca[i],"+")==0 )
 			{
+				aux++;
+				buffer = copiar("@exp");
+				strcat(buffer,convertir(aux));
+				op1 = copiar(desapilar_c(&pila_op));
+				op2 = copiar(desapilar_c(&pila_op));			
+				fprintf(archivo,"\tFLD %s\n",op2);
+				fprintf(archivo,"\tFLD %s\n",op1);
+				fprintf(archivo,"\tFADD\n");
+				fprintf(archivo,"\tFST %s\n",buffer); 
+				apilar_c( buffer , &pila_op);	
+			}
+			if(strcmp(polaca[i],"*")==0 )
+			{	
+				aux++;
+				buffer = copiar("@exp");
+				strcat(buffer,convertir(aux));
 				op1 = copiar(desapilar_c(&pila_op));
 				op2 = copiar(desapilar_c(&pila_op));
-				fprintf(archivo,"\tFLD %s\n",op1);
 				fprintf(archivo,"\tFLD %s\n",op2);
-				fprintf(archivo,"\tFADD\n");
-			}
-			/*if(strcmp(polaca[i],"*")==0 )
-			{	
-				fprintf(archivo,"\tFLD %s\n",polaca[i-2]);
-				fprintf(archivo,"\tFLD %s\n",polaca[i-1]);
+				fprintf(archivo,"\tFLD %s\n",op1);
 				fprintf(archivo,"\tFMUL\n");
+				fprintf(archivo,"\tFST %s\n",buffer); 
+				apilar_c( buffer , &pila_op);	
 			}
 			if(strcmp(polaca[i],"/")==0 )
 			{
-				fprintf(archivo,"\tFLD %s\n",polaca[i-2]);
-				fprintf(archivo,"\tFLD %s\n",polaca[i-1]);
+				aux++;
+				buffer = copiar("@exp");
+				strcat(buffer,convertir(aux));
+				op1 = copiar(desapilar_c(&pila_op));
+				op2 = copiar(desapilar_c(&pila_op));
+				fprintf(archivo,"\tFLD %s\n",op2);
+				fprintf(archivo,"\tFLD %s\n",op1);
 				fprintf(archivo,"\tFDIV\n");
+				fprintf(archivo,"\tFST %s\n",buffer);
+				apilar_c( buffer , &pila_op);	
 			}
 			if(strcmp(polaca[i],"-")==0 )
 			{
-				fprintf(archivo,"\tFLD %s\n",polaca[i-2]);
-				fprintf(archivo,"\tFLD %s\n",polaca[i-1]);
+				aux++;
+				strcpy(buffer,"@exp");
+				strcat(buffer,convertir(aux));
+				op1 = copiar(desapilar_c(&pila_op));
+				op2 = copiar(desapilar_c(&pila_op));
+				fprintf(archivo,"\tFLD %s\n",op2);
+				fprintf(archivo,"\tFLD %s\n",op1);
 				fprintf(archivo,"\tFSUB\n");
-			}*/
-		
-		//}
+				fprintf(archivo,"\tFST %s\n",buffer);
+				apilar_c( buffer , &pila_op);
+			}
 			
+			//ASIGNACIONES
+			if( strcmp(polaca[i] , "=" )==0 )
+			{
+				op1 = copiar(desapilar_c(&pila_op));
+				op2 = copiar(desapilar_c(&pila_op));
+				fprintf(archivo,"\tFLD %s\n",op2);
+				fprintf(archivo,"\tFST %s\n",op1);
+			}		
+			
+			//WRITE
+			/*if( esEntradaSalida(polaca[i]) == 1 ) 
+			{
+				
+				if(strcmp( obtenerTipo(polaca[i+1] ) , "Int" ) == 0 )
+					fprintf(archivo,"\tdisplayFloat \t@%s,3\n\tnewLine 1\n", polaca[i+1]);
+				else 
+					if(strcmp( obtenerTipo(polaca[i+1] )  , "Float" ) == 0)
+						fprintf(archivo,"\tdisplayFloat \t@%s,3\n\tnewLine 1\n", polaca[i+1]);
+					else
+						if(strcmp( obtenerTipo(polaca[i+1] )  , "String" ) == 0)
+							fprintf(archivo,"\tdisplayString \t@%s\n\tnewLine 1\n", polaca[i+1]);
+			}*/
+			
+		}
+		
+	}	
+}
+
+int esOperando(char *dato)
+{
+	int i ;
 	
+
+	for( i = 0 ; i < indice_id ; i ++ )
+	{
+			if( strcmp( dato , lista_id[i].nombre) == 0){ 
+			return 1;}
 	}
 	
+	for( i = 0 ; i < indice_variables ; i ++ )
+	{
+			if( strcmp( dato , lista_variables[i].nombre) == 0){ 
+			return 1;}
+	}
 	
-
+	for( i = 0 ; i < indice_constantes ; i ++ )
+	{
+			if( strcmp( dato , lista_constantes[i].nombre) == 0){ 
+			return 2;}
+	}
 	
-
-
+	for( i = 0 ; i < 2 ; i ++ )
+	{
+			if( strcmp( dato , lista_auxiliares[i].nombre) == 0){ 
+			return 3;}
+	}
+	
+	return 0;
 }
+
+int verficarDeclaracion(char *dato)
+{
+	int i ;
+	
+
+	for( i = 0 ; i < indice_variables ; i ++ )
+	{
+			if( strcmp( dato , lista_variables[i].nombre) == 0){ 
+			return 1;}
+	}	
+	
+	return 0;
+}
+
+int verificarCtesRepetidas(char *dato)
+{
+	int i ;
+	
+	for( i = 0 ; i < indice_constantes ; i ++ )
+	{
+			if( strcmp( dato , lista_constantes[i].nombre) == 0){ 
+			return 1;}
+	}	
+	
+	return 0;
+}
+
+int verificarTipo(char *tipo)
+{
+	int i ;
+	
+	for( i = 0 ; i < indice_variables ; i ++ )
+	{
+			if( strcmp( tipo , lista_variables[i].tipo) == 0){ 
+			return 1;}
+	}	
+	
+	return 0;
+}
+
+int esEntradaSalida(char *dato)
+{
+	if( strcmp( dato , "write") == 0)
+		return 1;
+	if( strcmp( dato , "read") == 0 )
+		return 2;
+	return 0;
+}
+
+char *obtenerTipo( char *dato )
+{
+	int i = 0;
+	for( i = 0 ; i < indice_inout ; i ++ )
+	{
+		if( strcmp( dato , lista_inout[indice_inout].nombre ) == 0 ){ printf("%s\n",lista_inout[indice_inout].tipo);
+		return lista_inout[indice_inout].tipo ;}
+	}		
+	return 0;
+}
+
 

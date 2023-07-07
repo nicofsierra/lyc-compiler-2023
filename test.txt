@@ -17,6 +17,7 @@ B = -10
 E = A * 2.3 + 1
 H = 2.3
 R2 = -.4
+G = "HOLA"
 
 *-EXPRESIONES-*
 
@@ -41,10 +42,6 @@ if(A == 4 || B != 9) {
 	}
 }
 
-G = "HOLA"
-F = "HOLA TODO BIEN!"
-
-E = 12
 
 *-CICLO-*
 ciclo(E > B) {
@@ -56,13 +53,9 @@ ciclo( not A == B )
 	A = 1
 }
 
-write(A)
-
 *-FUNCION FIB-*
-fib1 = FIB(6)
-fib2 = A + B * FIB(2)
-
-
+*-fib1 = FIB(6)-*
+*-fib2 = A + B * FIB(2)-*
 
 *-ERRORES DEL LEXICO-*
 *-D := 50000-*
@@ -75,4 +68,3 @@ fib2 = A + B * FIB(2)
 read(F)
 write(F)
 write("chau")
-	
