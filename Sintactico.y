@@ -81,6 +81,7 @@ char *reemplazarMenos(char *);
 char *reemplazarPunto(char *);
 char *reemplazarComillas(char *);
 int marcarVariable(char *);
+void actualizar_TS(char *,char *);
 
 //manejo de cadenas
 char *convertir( int );
@@ -281,8 +282,10 @@ bloque_declaracion:
 declaracion:
 		multiple_dec DP tipo { int j; for( j = total_tipos; j < indice_variables; j++ ){
 											lista_variables[j].tipo = copiar(tipo);
+											actualizar_TS(lista_variables[j].nombre,tipo);
 										}
 									  total_tipos = indice_variables;
+									  
 							   printf("R40: declaracion -> multiple_dec : tipo\n"); insertar_polaca($2); }
 		;
 		
@@ -834,4 +837,8 @@ int marcarVariable( char *dato)
 	}
 }
 
+void actualizar_TS(char *nombre,char *tipo)
+{
+	//ACA HABRIA QUE RECORRER LA TS Y ACTUALIZAR EL TIPO SI COINCIDE EL NOMBRE
+}
 
