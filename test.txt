@@ -10,6 +10,9 @@ init
 	variable1: Int
 }
 
+*- VARIABLE NO DECLARADA PERO USADA-*
+*-HH = 4-*
+
 
 *-ASIGNACIONES-*
 A = 5

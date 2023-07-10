@@ -76,6 +76,9 @@ int verificarCtesRepetidas(char *);
 int verificarTipo(int, char *);
 int esEntradaSalida(char *);
 char *obtenerTipo( char *);
+char *reemplazarMenos(char *);
+char *reemplazarPunto(char *);
+char *reemplazarComillas(char *);
 
 //manejo de cadenas
 char *convertir( int );
@@ -467,11 +470,11 @@ void generar_asm()
 	FILE *archivo;
 	int i = 0;
 	archivo = fopen("final.asm","w+");
-	
+	char *cadena;
 	
 	fprintf(archivo,"include macros2.asm\n");
 	fprintf(archivo,"include number.asm\n\n");
-	fprintf(archivo,".MODEL LARGE\n.STACK 200h\n.386\n.387\n.DATA\n\n");
+	fprintf(archivo,".MODEL LARGE\n.STACK 200h\nMAXTEXTSIZE equ 50\n.386\n.387\n.DATA\n\n");
 
 	//DECLARACION DE VARIABLES
 	for(i = 0; i<indice_variables; i++){
@@ -488,15 +491,20 @@ void generar_asm()
 
 	//DECLARACION DE CONSTANTES
 	for(i = 0; i<indice_constantes; i++){
+		cadena = copiar(reemplazarMenos(lista_constantes[i].nombre));
+		cadena = copiar(reemplazarPunto(lista_constantes[i].nombre));
+		cadena = copiar(reemplazarComillas(lista_constantes[i].nombre));
 		if(strcmp(lista_constantes[i].tipo,"Int")==0)
-			fprintf(archivo,"\t_%s \tDD %d.0\n",lista_constantes[i].nombre,lista_constantes[i].valor);
+			fprintf(archivo,"\t@_%s \tDD %d.0\n",cadena,lista_constantes[i].valor);
 		else
 			if (strcmp(lista_constantes[i].tipo,"Float")==0)
-				fprintf(archivo,"\t_%s \tDD %.1f\n",lista_constantes[i].nombre,lista_constantes[i].valor_f);
+				fprintf(archivo,"\t@_%s \tDD %.1f\n",cadena,lista_constantes[i].valor_f);
 			else
 				if(strcmp(lista_constantes[i].tipo,"String")==0)
-					fprintf(archivo,"\t_%s \tDB \"%d\",'$',%d dup(?)\n",lista_constantes[i].nombre,lista_constantes[i].valor,50-lista_constantes[i].longitud);
+					fprintf(archivo,"\t@_%s \tDB \"%s\",'$',%d dup(?)\n",cadena,cadena,50-lista_constantes[i].longitud);
 	}
+	
+	
 	
 	//DECLARACION AUXILIARES
 	
@@ -504,15 +512,36 @@ void generar_asm()
 	lista_auxiliares[1].nombre = copiar("@aux2");
 	fprintf(archivo,"\t%s \tDD 0.0\n",lista_auxiliares[0].nombre);
 	fprintf(archivo,"\t%s \tDD 0.0\n",lista_auxiliares[1].nombre);
+	int aux = 1;
+	for( i = 0 ; i < indice ; i++ )
+	{
+		if( polaca[i] != NULL){
+			if(strcmp(polaca[i],"+")==0 )
+				aux++;
+			if(strcmp(polaca[i],"*")==0 )
+				aux++;
+			if(strcmp(polaca[i],"/")==0 )
+				aux++;
+			if(strcmp(polaca[i],"-")==0 )
+				aux++;
+		}	
+	}
 	
-	
+	for ( i = 1 ; i < aux ; i ++ )
+		fprintf(archivo,"\t@exp%d \tDD 0.0\n",i);
 	
 	
 	fprintf(archivo,"\t@null \tDD -1.0\n");
-	fprintf(archivo,"\n.CODE\n.startup\n\tmov AX,@DATA\n\tmov DS,AX\n\n");
+	fprintf(archivo,"\n.CODE\n.startup\n\tSTART:\n\tmov AX,@DATA\n\tmov DS,AX\n\n");
 	
 	recorrerPolaca(archivo);
-	fprintf(archivo,"\tmov ah, 4ch\n\tint 21h\n\n;FIN DEL PROGRAMA DE USUARIO\n");
+		
+	//MANEJO DE CADENAS	
+	fprintf(archivo,"\n;FIN DEL PROGRAMA DE USUARIO\n\nstrlen proc\n\tmov bx, 0\n\tstrl01:\n\tcmp BYTE PTR [si+bx],'$'\n\tje strend\n\tinc bx\n\tjmp strl01\n\tstrend:\n\tret\nstrlen endp\n");
+	fprintf(archivo,"\ncopiar proc\n\tcall strlen\n\tcmp bx , MAXTEXTSIZE\n\tjle copiarSizeOk\n\tmov bx , MAXTEXTSIZE\n\tcopiarSizeOk:\n\tmov cx , bx\n\tcld\n\trep movsb\n\tmov al , '$'\n\tmov byte ptr[di],al\n\tret\ncopiar endp\n");
+	fprintf(archivo,"\nconcat proc\n\tpush ds\n\tpush si\n\tcall strlen\n\tmov dx , bx\n\tmov si , di\n\tpush es\n\tpop ds\n\tcall strlen\n\tadd di, bx\n\tadd bx, dx\n\tcmp bx , MAXTEXTSIZE\n\tjg concatSizeMal\n\tconcatSizeOk:\n\tmov cx , dx\n\tjmp concatSigo\n\tconcatSizeMal:\n\tsub bx , MAXTEXTSIZE\n\tsub dx , bx\n\tmov cx , dx\n\tconcatSigo:\n\tpush ds\n\tpop es\n\tpop si\n\tpop ds\n\tcld\n\trep movsb\n\tmov al , '$'\n\tmov byte ptr[di],al\n\tret\nconcat endp\n");
+	
+	fprintf(archivo,"\tmov ah, 4ch\n\tint 21h\n\nEND START");
 	
 	fclose(archivo);
 	
@@ -525,6 +554,7 @@ void recorrerPolaca(FILE *archivo){
 	char *op2;
 	char *buffer;
 	int aux = 0;
+	char *cadena;
 	char *operando;
 	buffer = copiar("@exp");
 	strcat(buffer,convertir(aux));
@@ -535,18 +565,27 @@ void recorrerPolaca(FILE *archivo){
 		if( polaca[i] != NULL){
 		//OPERADORES	
 			
+			cadena = copiar(reemplazarMenos(polaca[i]));
+			cadena = copiar(reemplazarPunto(polaca[i]));
+			cadena = copiar(reemplazarComillas(polaca[i]));
+			
 			if( esOperando(polaca[i]) == 1 ) {
 				operando = copiar("@");
 				strcat(operando,polaca[i]);
+				
 				apilar_c( operando , &pila_op );
 			}
-			if( esOperando(polaca[i]) == 2 ) {
-				operando = copiar("_");
-				strcat(operando,polaca[i]);
+			if( esOperando(cadena) == 2 ) {
+				operando = copiar("@_");
+				
+				
+				strcat(operando,cadena);
+				
 				apilar_c( operando , &pila_op );
 			}
 			
 			if( esOperando(polaca[i]) == 3 ) {
+				
 				apilar_c( polaca[i] , &pila_op );
 			}
 			if(strcmp(polaca[i],"+")==0 )
@@ -607,8 +646,17 @@ void recorrerPolaca(FILE *archivo){
 			{
 				op1 = copiar(desapilar_c(&pila_op));
 				op2 = copiar(desapilar_c(&pila_op));
+				if( strstr( op2 , "__" ) != NULL )
+				{
+				fprintf(archivo,"\tmov ax, @DATA\n\tmov ds, ax\n\tmov es, ax\n\tmov si, OFFSET ");
+				fprintf(archivo,"%s\n",op2);
+				fprintf(archivo,"\tmov di, OFFSET %s\n\tcall copiar\n",op1);
+				}
+				else
+				{
 				fprintf(archivo,"\tFLD %s\n",op2);
 				fprintf(archivo,"\tFST %s\n",op1);
+				}
 			}		
 			
 			//WRITE
@@ -731,6 +779,39 @@ char *obtenerTipo( char *dato )
 		return lista_inout[indice_inout].tipo ;}
 	}		
 	return 0;
+}
+
+char *reemplazarMenos(char *dato){
+	int i ;
+	for (i=0;i<=strlen(dato)-1;i++){ 
+		if (dato[i]=='-'){
+			dato[i]='m'; 
+		} 
+    } 
+	
+	return dato;
+}
+char *reemplazarPunto(char *dato){
+	int i ;
+	
+	for (i=0;i<=strlen(dato)-1;i++){ 
+		if (dato[i]=='.'){
+			dato[i]='p'; 
+		} 
+    } 
+	return dato;
+}	
+	
+char *reemplazarComillas(char *dato)
+{
+	int i ;
+	
+	for (i=0;i<=strlen(dato)-1;i++){ 
+		if (dato[i]=='"'){
+			dato[i]='_'; 
+		} 
+    } 
+	return dato;
 }
 
 
