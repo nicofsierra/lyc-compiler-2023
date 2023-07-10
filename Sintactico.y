@@ -11,6 +11,7 @@ typedef struct {
 	int valor;
 	float valor_f;
 	unsigned int longitud;
+	int usada;
 }var;
 
 var lista_variables[100];
@@ -79,6 +80,7 @@ char *obtenerTipo( char *);
 char *reemplazarMenos(char *);
 char *reemplazarPunto(char *);
 char *reemplazarComillas(char *);
+int marcarVariable(char *);
 
 //manejo de cadenas
 char *convertir( int );
@@ -167,15 +169,17 @@ sentencia:
 asignacion:
 		ID OP_ASIG expresion { 
 			printf("R9: asignacion -> ID(%s) = expresion \n",$1); 
-			if( verficarDeclaracion($1) == 0 ) {printf("\n\n\tVariable %s no inicializada\n",$1); return -1;} 
-			if( verificarTipo(tipo_validar,$1) == 0 ) {printf("\n\n\tError de tipos variable %s\n",$1); return -1; } tipo_validar = 0 ;
+			if( verficarDeclaracion($1) == 0 ) {printf("\n\n\tError: Variable %s no inicializada\n",$1); return -1;} 
+			if( verificarTipo(tipo_validar,$1) == 0 ) {printf("\n\n\tError: Tipos variable %s no compatibles\n",$1); return -1; } tipo_validar = 0 ;
+			marcarVariable($1);
 			insertar_polaca($1);
 			insertar_polaca($2);
 		}
 		| ID OP_ASIG constante_string {
 			printf("R10: asignacion -> ID = cte_s \n"); 
 			if( verficarDeclaracion($1) == 0 ) {printf("\n\n\tVariable %s no inicializada\n",$1); return -1;}
-			if( verificarTipo(tipo_validar,$1) == 0 ) {printf("\n\n\tError de tipos variable %s\n",$1); return -1;} tipo_validar = 0 ;  
+			if( verificarTipo(tipo_validar,$1) == 0 ) {printf("\n\n\tError: Tipos variable %s no compatibles\n",$1); return -1;} tipo_validar = 0 ;
+			marcarVariable($1);
 			insertar_polaca($1);
 			insertar_polaca($2);
 		}
@@ -544,6 +548,12 @@ void generar_asm()
 	fprintf(archivo,"\tmov ah, 4ch\n\tint 21h\n\nEND START");
 	
 	fclose(archivo);
+	//recorrer lista variables por no usadas
+	for( i = 0; i < indice_variables ; i ++ )
+	{
+		if( lista_variables[i].usada == 0 )
+			printf( "\n\n\t WARNING: Variable %s inicializada por nunca utilizada\n",lista_variables[i].nombre);
+	}
 	
 }
 
@@ -812,6 +822,16 @@ char *reemplazarComillas(char *dato)
 		} 
     } 
 	return dato;
+}
+
+int marcarVariable( char *dato)
+{
+	int i;
+	for( i = 0 ; i < indice_variables ; i ++ )
+	{
+		if( strcmp( lista_variables[i].nombre , dato ) == 0 )
+			lista_variables[i].usada = 1;
+	}
 }
 
 
