@@ -13,6 +13,7 @@ struct struct_tablaSimbolos{
 
 int guardar_TS(char*, char*, char*);
 int crear_TS();
+void actualizar_tipo_TS(char *,char *);
 struct struct_tablaSimbolos obtener_TS(char*);
 int es_constante(char *);
 int contar_char(char*);
@@ -28,9 +29,9 @@ FILE  *yyin;
 char *yyltext;
 
 int yyerror(void);
-int eval_int( char *n );
-int eval_float( char *n );
-int eval_string( char *s );
+int eval_int(char *n);
+int eval_float(char *n);
+int eval_string(char *s);
 
 
 %}
@@ -187,7 +188,7 @@ int guardar_TS (char* tipo, char* nombre, char* valor) {
 	str_cpy(tablaSimbolos[puntero_array].tipo, tipo);
 	str_cpy(tablaSimbolos[puntero_array].valor, valor);
 
-	if(tipo == "CTE_S") {
+	if(str_cmp(tipo, "CTE_S")) {
 		int longitud = strlen(nombre);
 		tablaSimbolos[puntero_array].longitud = longitud;
 	}
@@ -233,8 +234,18 @@ struct struct_tablaSimbolos obtener_TS(char* nombre) {
     return dato;
 }
 
+void actualizar_tipo_TS(char *nombre,char *tipo) {
+	int i;
+
+	for(i = 0; i < puntero_array; i++) {
+		if(str_cmp(tablaSimbolos[i].nombre, nombre) == 0) {
+			str_cpy(tablaSimbolos[i].tipo, tipo);
+		}
+	}
+}
+
 int es_constante(char *tipo) {
-	if (str_cmp(tipo, "CTE_E") == 0 || str_cmp(tipo, "CTE_R") == 0 || str_cmp(tipo, "CTE_S") == 0) {
+	if (str_cmp(tipo, "Int") == 0 || str_cmp(tipo, "Float") == 0 || str_cmp(tipo, "String") == 0) {
 		return 1;
 	}
 

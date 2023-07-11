@@ -81,7 +81,7 @@ char *reemplazarMenos(char *);
 char *reemplazarPunto(char *);
 char *reemplazarComillas(char *);
 int marcarVariable(char *);
-void actualizar_TS(char *,char *);
+void actualizar_tipo_TS(char *,char *);
 
 //manejo de cadenas
 char *convertir( int );
@@ -180,6 +180,9 @@ asignacion:
 			printf("R10: asignacion -> ID = cte_s \n"); 
 			if( verficarDeclaracion($1) == 0 ) {printf("\n\n\tVariable %s no inicializada\n",$1); return -1;}
 			if( verificarTipo(tipo_validar,$1) == 0 ) {printf("\n\n\tError: Tipos variable %s no compatibles\n",$1); return -1;} tipo_validar = 0 ;
+			lista_constantes[indice_constantes].nombre = copiar($1);
+			lista_constantes[indice_constantes].tipo = copiar("String");
+
 			marcarVariable($1);
 			insertar_polaca($1);
 			insertar_polaca($2);
@@ -248,10 +251,16 @@ factor:
 		| CTE_E {printf("R34: factor -> CTE_E(%s)\n",$1); insertar_polaca($1); if( tipo_validar != 1) tipo_validar = 2; else tipo_validar= 1;
 																		if( !verificarCtesRepetidas($1) ) {lista_constantes[indice_constantes].nombre = copiar($1); ;
 																		lista_constantes[indice_constantes].tipo = copiar("Int");
-																		lista_constantes[indice_constantes].valor = atoi($1); indice_constantes++; } }
+																		lista_constantes[indice_constantes].valor = atoi($1); 
+																		actualizar_tipo_TS(lista_constantes[indice_constantes].nombre, lista_constantes[indice_constantes].tipo);
+																		indice_constantes++;
+																		} }
 		| CTE_R {printf("R35: factor -> CTE_R(%s)\n",$1); insertar_polaca($1); tipo_validar = 1;  if( !verificarCtesRepetidas($1) ) {lista_constantes[indice_constantes].nombre = copiar($1);
 																		lista_constantes[indice_constantes].tipo = copiar("Float");		
-																		lista_constantes[indice_constantes].valor_f = atof($1); indice_constantes++;  }}
+																		lista_constantes[indice_constantes].valor_f = atof($1); 
+																		actualizar_tipo_TS(lista_constantes[indice_constantes].nombre, lista_constantes[indice_constantes].tipo);
+																		indice_constantes++;
+																		}}
 		| FIB PARA CTE_E PARC { printf("R36: factor -> FIB ( CTE_E )\n"); insertar_polaca("0"); insertar_polaca("@cont"); insertar_polaca("=");
 																insertar_polaca("0"); insertar_polaca("@ret"); insertar_polaca("=");
 																insertar_polaca("0"); insertar_polaca("@term1"); insertar_polaca("=");
@@ -264,7 +273,12 @@ factor:
 																insertar_polaca("@cont"); insertar_polaca("1"); insertar_polaca("+");
 																insertar_polaca("@cont"); insertar_polaca("="); insertar_polaca("BI"); 
 																insertar_polaca(convertir(desapilar(&pila_fib))); insertar_polaca("@ret"); 
-																insertar_polaca("@fib"); insertar_polaca("="); 
+																insertar_polaca("@fib"); insertar_polaca("=");
+																lista_constantes[indice_constantes].nombre = copiar($1); ;
+																lista_constantes[indice_constantes].tipo = copiar("Int");
+																lista_constantes[indice_constantes].valor = atoi($1); 
+																actualizar_tipo_TS(lista_constantes[indice_constantes].nombre, lista_constantes[indice_constantes].tipo);
+																indice_constantes++;
 																}
 		;
 		
@@ -282,7 +296,7 @@ bloque_declaracion:
 declaracion:
 		multiple_dec DP tipo { int j; for( j = total_tipos; j < indice_variables; j++ ){
 											lista_variables[j].tipo = copiar(tipo);
-											actualizar_TS(lista_variables[j].nombre,tipo);
+											actualizar_tipo_TS(lista_variables[j].nombre, tipo);
 										}
 									  total_tipos = indice_variables;
 									  
@@ -309,7 +323,9 @@ constante_string:
 		CTE_S { printf ("R47: constante_string -> CTE_S(%s)\n",$1); insertar_polaca($1); tipo_validar = 3;
 																				  lista_constantes[indice_constantes].nombre = copiar($1);
 																				  lista_constantes[indice_constantes].tipo = copiar("String");
-																				  lista_constantes[indice_constantes].longitud = strlen($1); indice_constantes++;}
+																				  lista_constantes[indice_constantes].longitud = strlen($1); 
+																				  actualizar_tipo_TS(lista_constantes[indice_constantes].nombre, lista_constantes[indice_constantes].tipo);
+																				  indice_constantes++;}
 		;
 
 read:
@@ -323,12 +339,12 @@ read:
 		;
 write:
 		WRITE PARA CTE_S PARC{ printf("R51: write -> WRITE (CTE_S)\n"); insertar_polaca($1); insertar_polaca($3);lista_inout[indice_inout].nombre = copiar($3); 
-																        lista_inout[indice_inout].tipo = copiar("String"); indice_inout++; printf("%s\n",lista_inout[indice_inout].nombre);}
+																        lista_inout[indice_inout].tipo = copiar("String"); actualizar_tipo_TS(lista_inout[indice_inout].nombre, lista_inout[indice_inout].tipo); indice_inout++;}
 		| WRITE PARA CTE_E PARC{printf("R52: write -> WRITE (CTE_E)\n"); insertar_polaca($1); insertar_polaca($3);lista_inout[indice_inout].nombre = copiar($3); 
-																	     lista_inout[indice_inout].tipo = copiar("Int"); indice_inout++;}
+																	     lista_inout[indice_inout].tipo = copiar("Int"); actualizar_tipo_TS(lista_inout[indice_inout].nombre, lista_inout[indice_inout].tipo); indice_inout++;}
 		| WRITE PARA ID PARC{printf("R53: write -> WRITE (ID)\n"); insertar_polaca($1); insertar_polaca($3); lista_inout[indice_inout].nombre = copiar($3); indice_inout++;}
 		| WRITE PARA CTE_R PARC{printf("R54: write -> WRITE (CTE_R)\n"); insertar_polaca($1); insertar_polaca($3); lista_inout[indice_inout].nombre = copiar($3); 
-																		 lista_inout[indice_inout].tipo = copiar("Float"); indice_inout++; }
+																		 lista_inout[indice_inout].tipo = copiar("Float"); actualizar_tipo_TS(lista_inout[indice_inout].nombre, lista_inout[indice_inout].tipo); indice_inout++; }
 		;
 %%
 
@@ -691,81 +707,74 @@ void recorrerPolaca(FILE *archivo){
 	}	
 }
 
-int esOperando(char *dato)
-{
+int esOperando(char *dato) {
 	int i ;
 	
-
-	for( i = 0 ; i < indice_id ; i ++ )
-	{
-			if( strcmp( dato , lista_id[i].nombre) == 0){ 
-			return 1;}
+	for( i = 0 ; i < indice_id ; i ++ ) {
+		if(strcmp( dato , lista_id[i].nombre) == 0) { 
+			return 1;
+		}
 	}
 	
-	for( i = 0 ; i < indice_variables ; i ++ )
-	{
-			if( strcmp( dato , lista_variables[i].nombre) == 0){ 
-			return 1;}
+	for( i = 0 ; i < indice_variables ; i ++ ) {
+		if( strcmp( dato , lista_variables[i].nombre) == 0) { 
+			return 1;
+		}
 	}
 	
-	for( i = 0 ; i < indice_constantes ; i ++ )
-	{
-			if( strcmp( dato , lista_constantes[i].nombre) == 0){ 
-			return 2;}
+	for( i = 0 ; i < indice_constantes ; i ++ ) {
+		if( strcmp( dato , lista_constantes[i].nombre) == 0) { 
+			return 2;
+		}
 	}
 	
-	for( i = 0 ; i < 2 ; i ++ )
-	{
-			if( strcmp( dato , lista_auxiliares[i].nombre) == 0){ 
-			return 3;}
+	for( i = 0 ; i < 2 ; i ++ ) {
+		if( strcmp( dato , lista_auxiliares[i].nombre) == 0) { 
+			return 3;
+		}
 	}
 	
 	return 0;
 }
 
-int verficarDeclaracion(char *dato)
-{
-	int i ;
-	
+int verficarDeclaracion(char *dato) {
+	int i;
 
-	for( i = 0 ; i < indice_variables ; i ++ )
-	{
-			if( strcmp( dato , lista_variables[i].nombre) == 0){ 
-			return 1;}
+	for(i = 0; i < indice_variables; i ++) {
+		if(strcmp( dato , lista_variables[i].nombre) == 0){ 
+			return 1;
+		}
 	}	
 	
 	return 0;
 }
 
-int verificarCtesRepetidas(char *dato)
-{
+int verificarCtesRepetidas(char *dato) {
 	int i ;
 	
-	for( i = 0 ; i < indice_constantes ; i ++ )
-	{
-			if( strcmp( dato , lista_constantes[i].nombre) == 0){ 
-			return 1;}
+	for( i = 0 ; i < indice_constantes ; i ++ ) {
+		if( strcmp( dato , lista_constantes[i].nombre) == 0) { 
+			return 1;
+		}
 	}	
 	
 	return 0;
 }
 
-int verificarTipo(int tipo, char *variable)
-{
+int verificarTipo(int tipo, char *variable) {
 	int i ;
 	char *tipo_c;
-	printf( "%d", tipo );
+
 	if( tipo == 1 )
 		tipo_c = copiar( "Float" );
 	if( tipo == 2 )
 		tipo_c = copiar("Int");
 	if( tipo == 3 )
 		tipo_c = copiar("String");
-	printf("%s",tipo_c);
-	for( i = 0 ; i < indice_variables ; i ++ )
-	{
-			if( strcmp( variable , lista_variables[i].nombre) == 0){ 
-				if( strcmp( tipo_c , lista_variables[i].tipo) == 0){
+
+	for( i = 0; i < indice_variables; i ++ ) {
+			if(strcmp( variable , lista_variables[i].nombre) == 0){ 
+				if(strcmp(tipo_c , lista_variables[i].tipo) == 0) {
 					return 1;
 				}
 			}
@@ -783,19 +792,18 @@ int esEntradaSalida(char *dato)
 	return 0;
 }
 
-char *obtenerTipo( char *dato )
-{
-	int i = 0;
-	for( i = 0 ; i < indice_inout ; i ++ )
-	{
+char *obtenerTipo(char *dato) {
+	int i;
+	for(i = 0 ; i < indice_inout ; i ++) {
 		if( strcmp( dato , lista_inout[indice_inout].nombre ) == 0 ){ 
 		return lista_inout[indice_inout].tipo ;}
-	}		
+	}
+
 	return 0;
 }
 
-char *reemplazarMenos(char *dato){
-	int i ;
+char *reemplazarMenos(char *dato) {
+	int i;
 	for (i=0;i<=strlen(dato)-1;i++){ 
 		if (dato[i]=='-'){
 			dato[i]='m'; 
@@ -804,7 +812,7 @@ char *reemplazarMenos(char *dato){
 	
 	return dato;
 }
-char *reemplazarPunto(char *dato){
+char *reemplazarPunto(char *dato) {
 	int i ;
 	
 	for (i=0;i<=strlen(dato)-1;i++){ 
@@ -815,8 +823,7 @@ char *reemplazarPunto(char *dato){
 	return dato;
 }	
 	
-char *reemplazarComillas(char *dato)
-{
+char *reemplazarComillas(char *dato) {
 	int i ;
 	
 	for (i=0;i<=strlen(dato)-1;i++){ 
@@ -827,18 +834,10 @@ char *reemplazarComillas(char *dato)
 	return dato;
 }
 
-int marcarVariable( char *dato)
-{
+int marcarVariable(char *dato) {
 	int i;
-	for( i = 0 ; i < indice_variables ; i ++ )
-	{
-		if( strcmp( lista_variables[i].nombre , dato ) == 0 )
+	for(i = 0 ; i < indice_variables; i ++ ) {
+		if(strcmp(lista_variables[i].nombre , dato) == 0)
 			lista_variables[i].usada = 1;
 	}
 }
-
-void actualizar_TS(char *nombre,char *tipo)
-{
-	//ACA HABRIA QUE RECORRER LA TS Y ACTUALIZAR EL TIPO SI COINCIDE EL NOMBRE
-}
-
