@@ -5,7 +5,6 @@ include number.asm
 .STACK 200h
 MAXTEXTSIZE equ 50
 .386
-.387
 .DATA
 
 	@A 	DD 0.0
@@ -40,10 +39,11 @@ MAXTEXTSIZE equ 50
 	@exp3 	DD 0.0
 	@exp4 	DD 0.0
 	@exp5 	DD 0.0
+	@_Fin_del_programa 	DB "El programa fue ejecutado con exito",'$',15 dup(?)
+	@_Saludo DB "Grupo 02. LYC 1C-2023",'$',29 dup(?)
 	@null 	DD -1.0
 
 .CODE
-.startup
 	START:
 	mov AX,@DATA
 	mov DS,AX
@@ -71,7 +71,6 @@ MAXTEXTSIZE equ 50
 	mov es, ax
 	mov si, OFFSET @__HOLA_
 	mov di, OFFSET @G
-	call copiar
 	FLD @A
 	FLD @B
 	FADD
@@ -126,65 +125,12 @@ MAXTEXTSIZE equ 50
 	FST @aux2
 	FLD @_1
 	FST @A
+	displayString	@_Fin_del_programa
+	newLine 1
+	displayString	@_Saludo
+	newLine 1
 
 ;FIN DEL PROGRAMA DE USUARIO
-
-strlen proc
-	mov bx, 0
-	strl01:
-	cmp BYTE PTR [si+bx],'$'
-	je strend
-	inc bx
-	jmp strl01
-	strend:
-	ret
-strlen endp
-
-copiar proc
-	call strlen
-	cmp bx , MAXTEXTSIZE
-	jle copiarSizeOk
-	mov bx , MAXTEXTSIZE
-	copiarSizeOk:
-	mov cx , bx
-	cld
-	rep movsb
-	mov al , '$'
-	mov byte ptr[di],al
-	ret
-copiar endp
-
-concat proc
-	push ds
-	push si
-	call strlen
-	mov dx , bx
-	mov si , di
-	push es
-	pop ds
-	call strlen
-	add di, bx
-	add bx, dx
-	cmp bx , MAXTEXTSIZE
-	jg concatSizeMal
-	concatSizeOk:
-	mov cx , dx
-	jmp concatSigo
-	concatSizeMal:
-	sub bx , MAXTEXTSIZE
-	sub dx , bx
-	mov cx , dx
-	concatSigo:
-	push ds
-	pop es
-	pop si
-	pop ds
-	cld
-	rep movsb
-	mov al , '$'
-	mov byte ptr[di],al
-	ret
-concat endp
 	mov ah, 4ch
 	int 21h
 
